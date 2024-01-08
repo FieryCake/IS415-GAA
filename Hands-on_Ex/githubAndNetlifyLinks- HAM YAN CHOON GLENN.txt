@@ -1,0 +1,2 @@
+netlify: https://is415-gaa-glenn.netlify.app/
+github: https://github.com/FieryCake/IS415-GAA
