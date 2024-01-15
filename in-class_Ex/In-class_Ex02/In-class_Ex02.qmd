@@ -1,0 +1,114 @@
+---
+format:
+  html:
+    code-fold: true
+    code-summary: "Show the code"
+---
+
+# In class ex 2
+
+::: callout-note
+## DIY
+
+Using the step you learned in previous lesson, -Create folder and file for in class exercise 2
+:::
+
+# Getting Started
+
+## Installing and loading R packages
+
+```{r}
+pacman::p_load(tidyverse,sf,tmap,lubridate,arrow)
+```
+
+###tidyverse -\> family of packages, sf-\> geospatial in simple file format -\> tmap-Chloropeth map -\> lubridate - date and time -\> arrow - Read and write parquet file
+
+## Importing Grab-Posisi Dataset
+
+::: callout-note
+## DIY
+
+-   create folder called data in In-clss ex02 folder
+-   Create subfolder called GrabPosisi
+-   Download the dataset
+-   Write a code chunk to import parquest by using appropriate function of arrow package
+:::
+
+```{r}
+#| eval: false
+df <-read_parquet("../../data/data/GrabPosisi/part-00000-8bbff892-97d2-4011-9961-703e38972569.c000.snappy.parquet")
+```
+::: callout-note
+## DIY
+
+Write a code chunk to convert the data type to date-time
+(using lubridate to convert ping time to date-time)
+(override existing dataset with df$ - can also use mutate)
+:::
+
+```{r}
+#| eval: false
+df$pingtimestamp <- as_datetime(df$pingtimestamp)
+```
+
+::: callout-note
+## DIY
+
+Write a code chunk to 
+- Extract trip origin location
+- derice three new column, weekday, starting hour and day of the month
+- name the output tibble data.frame origin_df
+:::
+
+```{r}
+#| eval: false
+origin_df <-df %>% 
+  group_by(trj_id)%>%
+  arrange(pingtimestamp) %>%
+  filter(row_number()==1) %>%
+  mutate(weekday = wday(pingtimestamp,
+                        label=TRUE,
+                        abbr = TRUE),
+         start_hr = factor(hour(pingtimestamp)),
+         day = factor(mday(pingtimestamp)))
+```
+::: callout-note
+## DIY
+
+Write a code chunk to 
+- Extract trip destination location
+- derice three new column, weekday, starting hour and day of the month
+- name the output tibble data.frame origin_df
+:::
+
+```{r}
+#| eval: false
+destination_df <-df %>% 
+  group_by(trj_id)%>%
+  arrange(desc(pingtimestamp)) %>%
+  filter(row_number()==1) %>%
+  mutate(weekday = wday(pingtimestamp,
+                        label=TRUE,
+                        abbr = TRUE),
+         end_hr = factor(hour(pingtimestamp)),
+         day = factor(mday(pingtimestamp)))
+```
+
+##Export - Code hidden with echo false
+```{r}
+#| eval: false
+#| echo: false
+write_rds(origin_df,"data/rds/origin_df.rds")
+write_rds(destination_df,"data/rds/destination_df.rds")
+```
+##Import
+```{r}
+origin_df <-read_rds("data/rds/origin_df.rds")
+destination_df <-read_rds("data/rds/destination_df.rds")
+```
+
+
+##Visualising Frequency distribution 
+```{r}
+
+```
