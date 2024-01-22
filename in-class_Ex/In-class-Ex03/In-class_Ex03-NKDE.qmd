@@ -1,0 +1,69 @@
+
+```{r}
+library(maptools)
+pacman::p_load(sf,spNetwork,tmap,classInt,viridis,tidyverse)
+##virisdis - colours
+##classInt - also maps?
+```
+
+## Data import and preparation
+```{r}
+network<- st_read(dsn="data/geospatial", layer="Punggol_St")
+childcare<-st_read(dsn = "data/geospatial",layer= "Punggol_CC")
+```
+
+```{r}
+tmap_mode('view')
+tm_shape(childcare)+
+  tm_dots()+
+tm_shape(network)+tm_lines()
+tmap_mode('plot')
+```
+
+## sNap the data
+```{r}
+lixels <- lixelize_lines(network,750,mindist=375)
+##studie show that people only willing to walk 750m to chidcare center
+##need to get the middle point with midist
+##chops line segments 
+```
+
+
+
+Certainly! Let's break down the two code snippets:
+
+lixels <- lixelize_lines(network, 750, mindist = 375)
+
+This code snippet is likely using a function called lixelize_lines to create lixels (line segments or line pixels) from a network of lines. Here's a simple explanation of the parameters used:
+
+network: This is expected to be a spatial dataset representing a network of lines or line segments.
+750: This parameter specifies the desired length of the lixels. It means that the lines in the network will be divided into lixels, and each lixel will have a length of 750 units.
+mindist = 375: This parameter sets the minimum distance between two consecutive lixels. It ensures that there is at least a distance of 375 units between the start of one lixel and the start of the next one. This helps prevent closely spaced or overlapping lixels.
+The result, stored in the variable lixels, would be a dataset or object containing the lixels derived from the original network of lines.
+
+
+
+```{r}
+samples <-lines_center(lixels)
+```
+
+```{r}
+densities<-nkde(network,events=childcare,w=rep(1,nrow(childcare)),samples=samples,
+                kernel_name = "quartic",bw=300,div="bw",method="simple",digits=1,tol=1,grid_shape = c(1,1),max_depth=8,agg=5 ##agg events within 5m radius (faster calculation)
+                ,sparse=TRUE,verbose=FALSE)
+```
+
+```{r}
+samples$density <- densities
+lixels$density <- densities
+
+# rescaling to help the mapping
+samples$density <- samples$density*1000
+lixels$density <- lixels$density*1000
+
+tmap_mode('view')
+tm_shape(lixels)+
+  tm_lines(col="density")+
+tm_shape(childcare)+
+  tm_dots()
+```
