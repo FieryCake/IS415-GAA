@@ -1,0 +1,80 @@
+
+
+```{r}
+library(maptools)
+pacman::p_load(sf, raster, spatstat, tmap,tidyverse)
+
+```
+```{r}
+childcare_sf <- st_read("../../Hands-on_Ex/Hands-on_Ex03/data/ChildCareServices.geojson")%>%
+  st_transform(crs = 3414)
+
+mpsz <- st_read(dsn = "../../Hands-on_Ex/data/geospatial", 
+                layer = "MP14_SUBZONE_WEB_PL")
+```
+```{r}
+
+simplified_country <- st_simplify(mpsz, preserveTopology = TRUE)
+
+sg_sf <- st_union(simplified_country)
+
+plot(sg_sf)
+
+```
+
+
+# Geospatial data wrangling
+```{r}
+childcare <- as_Spatial(childcare_sf)
+mpsz <- as_Spatial(mpsz)
+sg <- as_Spatial(sg_sf)
+childcare_sp <- as(childcare, "SpatialPoints")
+sg_sp <- as(sg, "SpatialPolygons")
+```
+
+## Changing to ppp format 
+```{r}
+childcare_ppp <- as(childcare_sp, "ppp")
+```
+
+## Changing to ppp format (sf to ppp)
+```{r}
+childcare_ppp <- as.ppp(childcare_sf)
+summary(childcare_ppp)
+```
+## Handling duplicated points
+```{r}
+any(duplicated(childcare_ppp))
+```
+
+To count the number of co-incidence point, we will use the *multiplicity()* function as shown in the code chunk below
+
+```{r}
+#multiplicity(childcare_ppp)
+```
+
+### Creating owin object : sf method - sf method need to use sf layer
+```{r}
+sg_owin <- as.owin(sg_sf)
+plot(sg_owin)
+```
+```{r}
+childcareSG_ppp = childcare_ppp[sg_owin]
+#summary(childcareSG_ppp)
+plot(childcareSG_ppp)
+plot(childcareSG_ppp, pch = 16, legend = FALSE, cex = 1)
+```
+
+##using tidyverse and sf to get area for areas
+```{r}
+mpsz_sf <- st_read(dsn = "../../Hands-on_Ex/data/geospatial", 
+                layer = "MP14_SUBZONE_WEB_PL")
+pg <-mpsz_sf%>%filter(PLN_AREA_N == "PUNGGOL")
+tm <-mpsz_sf%>%filter(PLN_AREA_N == "TAMPINES")
+ck <-mpsz_sf%>%filter(PLN_AREA_N == "CHOA CHU KANG")
+jw <-mpsz_sf%>%filter(PLN_AREA_N == "JURONG WEST")
+```
+
+```{r}
+plot(pg)
+```
