@@ -38,12 +38,11 @@ pacman::p_load(tidyverse,sf,tmap,lubridate,arrow)
 #| eval: false
 df <-read_parquet("../../data/data/GrabPosisi/part-00000-8bbff892-97d2-4011-9961-703e38972569.c000.snappy.parquet")
 ```
+
 ::: callout-note
 ## DIY
 
-Write a code chunk to convert the data type to date-time
-(using lubridate to convert ping time to date-time)
-(override existing dataset with df$ - can also use mutate)
+Write a code chunk to convert the data type to date-time (using lubridate to convert ping time to date-time) (override existing dataset with df\$ - can also use mutate)
 :::
 
 ```{r}
@@ -54,10 +53,7 @@ df$pingtimestamp <- as_datetime(df$pingtimestamp)
 ::: callout-note
 ## DIY
 
-Write a code chunk to 
-- Extract trip origin location
-- derice three new column, weekday, starting hour and day of the month
-- name the output tibble data.frame origin_df
+Write a code chunk to - Extract trip origin location - derice three new column, weekday, starting hour and day of the month - name the output tibble data.frame origin_df
 :::
 
 ```{r}
@@ -72,13 +68,11 @@ origin_df <-df %>%
          start_hr = factor(hour(pingtimestamp)),
          day = factor(mday(pingtimestamp)))
 ```
+
 ::: callout-note
 ## DIY
 
-Write a code chunk to 
-- Extract trip destination location
-- derice three new column, weekday, starting hour and day of the month
-- name the output tibble data.frame origin_df
+Write a code chunk to - Extract trip destination location - derice three new column, weekday, starting hour and day of the month - name the output tibble data.frame origin_df
 :::
 
 ```{r}
@@ -95,20 +89,23 @@ destination_df <-df %>%
 ```
 
 ##Export - Code hidden with echo false
+
 ```{r}
 #| eval: false
 #| echo: false
 write_rds(origin_df,"data/rds/origin_df.rds")
 write_rds(destination_df,"data/rds/destination_df.rds")
 ```
+
 ##Import
+
 ```{r}
 origin_df <-read_rds("data/rds/origin_df.rds")
 destination_df <-read_rds("data/rds/destination_df.rds")
 ```
 
+##Visualising Frequency distribution
 
-##Visualising Frequency distribution 
 ```{r}
 
 ```
