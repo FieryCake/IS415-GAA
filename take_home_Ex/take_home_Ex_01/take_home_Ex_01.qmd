@@ -1,0 +1,271 @@
+# Take home ex 1
+
+## Tasks
+
+The specific tasks of this take-home exercise are as follows:
+
+Using appropriate function of sf and tidyverse, preparing the following geospatial data layer in sf tibble data.frames: Grab taxi location points either by origins or destinations. Road layer within Singapore excluding outer islands. Singapore boundary layer excluding outer islands Using the extracted data, derive traditional Kernel Density Estimation layers. Using the extracted data, derive either Network Kernel Density Estimation (NKDE) or Temporal Network Kernel Density Estimation (TNKDE) Using appropriate tmap functions, display the kernel density layers on openstreetmap of Singapore. Describe the spatial patterns revealed by the kernel density maps.
+
+# Setup
+
+## Importing packages
+
+```{r}
+pacman::p_load(tidyverse,sf,tmap,lubridate,arrow,spNetwork,classInt,viridis)
+```
+
+# 1.0 Data Wrangling
+
+## Geospatial
+
+## 1.1 Importing data
+
+### Map data
+```{r}
+mpsz <- st_read(dsn = "../../Hands-on_Ex/data/geospatial", 
+                layer = "MP14_SUBZONE_WEB_PL")
+```
+### Road data
+```{r}
+roads_sf<-st_read(dsn = "data/geospatial",layer= "gis_osm_roads_free_1")
+```
+
+## 1.2 Pre-processing
+### Sources - Megan's journey - to check if geometries are valid
+```{r}
+length(which(st_is_valid(roads_sf) == FALSE))
+length(which(st_is_valid(mpsz) == FALSE))
+```
+
+```{r}
+
+mpsz <- st_make_valid(mpsz)
+length(which(st_is_valid(mpsz) == FALSE))
+## source: https://r-spatial.github.io/sf/reference/valid.html - make_valid
+```
+
+## 1.3 Checking Coordinate system
+### Checking MPSZ
+```{r}
+st_crs(mpsz)
+```
+### Checking Roads
+```{r}
+st_crs(roads_sf)
+```
+### Making roads data into projected SVY21
+```{r}
+roads3414 <- st_transform(roads_sf, 
+                              crs = 3414)
+st_crs(roads3414)
+```
+## 1.4 Removing of outer islands
+```{r}
+
+
+sg_sf <- st_union(mpsz,by_feature = FALSE)
+
+plot(sg_sf, col = "lightblue", main = "Sea Area")
+
+```
+Big island
+```{r}
+##source - https://stackoverflow.com/questions/42512431/how-to-separate-a-multipolygon-geometry-into-several-polygons-objects-after-perf
+
+ind_poly <- st_cast(sg_sf, "POLYGON")
+
+areas <- st_area(ind_poly)
+
+largest_index <- which.max(areas)
+
+largest_polygon <- ind_poly[largest_index]
+
+plot(largest_polygon)
+
+```
+
+Check crs of largest / convert to SVY
+```{r}
+mpsz3414 <- st_transform(largest_polygon, 
+                              crs = 3414)
+st_crs(mpsz3414)
+```
+## Aspatial
+### Importing Grab posisi 1
+```{r}
+grab1 <-read_parquet("data/aspatial/GrabPosisi/part-00000-8bbff892-97d2-4011-9961-703e38972569.c000.snappy.parquet")
+```
+
+### Changing timestamp to correct one
+```{r}
+grab1$pingtimestamp <- as_datetime(grab1$pingtimestamp)
+```
+
+::: callout-note
+## DIY
+
+Write a code chunk to - Extract trip origin location - derice three new column, weekday, starting hour and day of the month - name the output tibble data.frame origin_df
+:::
+
+```{r}
+origin_df <-grab1 %>% 
+  group_by(trj_id)%>%
+  arrange(pingtimestamp) %>%
+  filter(row_number()==1) %>%
+  mutate(weekday = wday(pingtimestamp,
+                        label=TRUE,
+                        abbr = TRUE),
+         start_hr = factor(hour(pingtimestamp)),
+         day = factor(mday(pingtimestamp)))
+```
+
+
+```{r}
+# Perform a spatial join to filter roads within Singapore
+#roadI <- roads3414[10]
+#roads_in_singapore <- st_intersection(roadI, mpsz3414)
+
+# Plot the roads within Singapore
+#plot(roads_in_singapore)
+# Simplify geometry of road data (adjust tolerance as needed)
+road_data <- st_simplify(roads3414, preserveTopology = TRUE)
+
+
+# Perform spatial intersection after simplification
+roads_in_singapore <- st_intersection(road_data, mpsz3414)
+
+```
+
+
+## plot map and roads to check
+```{r}
+tmap_mode('view')
+tm_shape(roads_in_singapore$geometry)+tm_lines()
+tmap_mode('plot')
+```
+
+## data set it too big, need to simplify again - use of buffer
+```{r}
+#buffered_map <- st_buffer(roads_in_singapore$geometry, dist = 10)
+#merged_buffers <- st_union(buffered_map)
+#plot(merged_buffers)
+
+```
+## verified that map looks cleaner and time taken to plot map is much faster now. 
+## We can plot the points on the map to see how it looks 
+```{r}
+#tmap_mode('view')
+#tm_shape(roads_in_singapore$geometry)+tm_lines()+
+#  tm_shape(origin_df)+tm_dots()
+#tmap_mode('plot')
+
+```
+
+### Throws error that grab1 is not sf / raster/ etc 
+
+##Check class of grab data
+```{r}
+class(origin_df)
+```
+
+## convert data frame to sf
+```{r}
+# Convert tibble to sf object
+sf_object <- st_as_sf(origin_df, coords = c("rawlng", "rawlat"), crs = 3414)
+
+sf_object2 <- st_transform(sf_object, crs = 3414)
+```
+### now we can plot our map + points
+## We can plot the points on the map to see how it looks 
+```{r}
+#lines <- st_cast(roads_in_singapore$geometry, "MULTILINESTRING")
+#lines <- st_cast(lines, "LINESTRING")
+```
+
+```{r}
+st_crs(sf_object)
+st_crs(lines)
+```
+
+```{r}
+#tmap_mode('view')
+#tm_shape(lines)+tm_lines()+
+#  tm_shape(sf_object)+tm_dots()
+#tmap_mode('plot')
+
+```
+
+### Plotting grab points - CRS 3414 on the map
+```{r}
+tmap_mode('view')
+  tm_shape(sf_object2)+tm_dots()+tm_shape(mpsz3414)+tm_polygons()
+tmap_mode('plot')
+
+```
+
+## Converting to Spatial points
+```{r}
+origin_df2 <- as_Spatial(sf_object2)
+object_sp <- as(origin_df2, "SpatialPoints")
+object_ppp <- as(object_sp, "ppp")
+object_ppp
+```
+## lab way of converting aspatial to project on map
+```{r}
+testout <- as(object_ppp,'SpatialPoints')
+tmap_mode('view')
+  tm_shape(mpsz3414)+tm_polygons()+tm_shape(testout)+tm_dots()
+tmap_mode('plot')
+
+```
+
+
+
+```{r}
+plot(object_ppp)
+```
+
+## Handling Duplicated Points
+```{r}
+any(duplicated(object_ppp))
+```
+
+# KDE
+
+
+# NKDE
+
+
+
+```{r}
+tmap_mode('view')
+  tm_shape(roads_in_singapore)+tm_lines()+tm_shape(testout)+tm_dots()
+tmap_mode('plot')
+```
+
+
+```{r}
+lines_sf <- st_as_sf(roads_in_singapore)
+lixels <- lixelize_lines(lines_sf,750,mindist=375)
+```
+
+
+
+
+
+
+```{r}
+#all_linestring <- all(st_geometry_type(lines) == "LINESTRING")
+#
+#print(all_linestring)
+```
+
+```{r}
+# Check dimensions of st_drop_geometry(lines)
+#lines_sf <- st_as_sf(lines)
+#dim(st_drop_geometry(lines_sf))
+
+# Check dimensions of result[[2]] + 1
+#dim(result[[2]] + 1)
+
+```
