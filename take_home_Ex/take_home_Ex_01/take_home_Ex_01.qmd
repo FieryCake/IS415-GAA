@@ -11,7 +11,7 @@ Using appropriate function of sf and tidyverse, preparing the following geospati
 ## Importing packages
 
 ```{r}
-pacman::p_load(tidyverse,sf,tmap,lubridate,arrow,spNetwork,classInt,viridis)
+pacman::p_load(tidyverse,sf,tmap,lubridate,arrow,spNetwork,classInt,viridis,raster,spatstat)
 ```
 
 # 1.0 Data Wrangling
@@ -21,17 +21,29 @@ pacman::p_load(tidyverse,sf,tmap,lubridate,arrow,spNetwork,classInt,viridis)
 ## 1.1 Importing data
 
 ### Map data
+
 ```{r}
 mpsz <- st_read(dsn = "../../Hands-on_Ex/data/geospatial", 
                 layer = "MP14_SUBZONE_WEB_PL")
+st_set_crs(mpsz, 3414)
 ```
+
 ### Road data
+
 ```{r}
 roads_sf<-st_read(dsn = "data/geospatial",layer= "gis_osm_roads_free_1")
 ```
 
+### Importing Grab posisi 1
+
+```{r}
+grab1 <-read_parquet("data/aspatial/GrabPosisi/part-00000-8bbff892-97d2-4011-9961-703e38972569.c000.snappy.parquet")
+```
+
 ## 1.2 Pre-processing
+
 ### Sources - Megan's journey - to check if geometries are valid
+
 ```{r}
 length(which(st_is_valid(roads_sf) == FALSE))
 length(which(st_is_valid(mpsz) == FALSE))
@@ -45,21 +57,29 @@ length(which(st_is_valid(mpsz) == FALSE))
 ```
 
 ## 1.3 Checking Coordinate system
+
 ### Checking MPSZ
+
 ```{r}
 st_crs(mpsz)
 ```
+
 ### Checking Roads
+
 ```{r}
 st_crs(roads_sf)
 ```
+
 ### Making roads data into projected SVY21
+
 ```{r}
 roads3414 <- st_transform(roads_sf, 
                               crs = 3414)
 st_crs(roads3414)
 ```
+
 ## 1.4 Removing of outer islands
+
 ```{r}
 
 
@@ -68,7 +88,9 @@ sg_sf <- st_union(mpsz,by_feature = FALSE)
 plot(sg_sf, col = "lightblue", main = "Sea Area")
 
 ```
+
 Big island
+
 ```{r}
 ##source - https://stackoverflow.com/questions/42512431/how-to-separate-a-multipolygon-geometry-into-several-polygons-objects-after-perf
 
@@ -85,18 +107,31 @@ plot(largest_polygon)
 ```
 
 Check crs of largest / convert to SVY
+
 ```{r}
 mpsz3414 <- st_transform(largest_polygon, 
                               crs = 3414)
 st_crs(mpsz3414)
 ```
-## Aspatial
-### Importing Grab posisi 1
+##Getting polygons inside big island
 ```{r}
-grab1 <-read_parquet("data/aspatial/GrabPosisi/part-00000-8bbff892-97d2-4011-9961-703e38972569.c000.snappy.parquet")
+mpsz3414
+mpsz
+```
+```{r}
+mpsz3414
+mpsz
+islandPoly <- st_intersection(st_set_crs(mpsz, 3414),st_set_crs(mpsz3414, 3414))
+
+```
+```{r}
+plot(islandPoly)
 ```
 
-### Changing timestamp to correct one
+## Aspatial Wrangling
+
+## Changing timestamp to correct one
+
 ```{r}
 grab1$pingtimestamp <- as_datetime(grab1$pingtimestamp)
 ```
@@ -119,7 +154,6 @@ origin_df <-grab1 %>%
          day = factor(mday(pingtimestamp)))
 ```
 
-
 ```{r}
 # Perform a spatial join to filter roads within Singapore
 #roadI <- roads3414[10]
@@ -136,8 +170,8 @@ roads_in_singapore <- st_intersection(road_data, mpsz3414)
 
 ```
 
-
 ## plot map and roads to check
+
 ```{r}
 tmap_mode('view')
 tm_shape(roads_in_singapore$geometry)+tm_lines()
@@ -145,14 +179,18 @@ tmap_mode('plot')
 ```
 
 ## data set it too big, need to simplify again - use of buffer
+
 ```{r}
 #buffered_map <- st_buffer(roads_in_singapore$geometry, dist = 10)
 #merged_buffers <- st_union(buffered_map)
 #plot(merged_buffers)
 
 ```
-## verified that map looks cleaner and time taken to plot map is much faster now. 
-## We can plot the points on the map to see how it looks 
+
+## verified that map looks cleaner and time taken to plot map is much faster now.
+
+## We can plot the points on the map to see how it looks
+
 ```{r}
 #tmap_mode('view')
 #tm_shape(roads_in_singapore$geometry)+tm_lines()+
@@ -161,25 +199,27 @@ tmap_mode('plot')
 
 ```
 
-### Throws error that grab1 is not sf / raster/ etc 
+### Throws error that grab1 is not sf / raster/ etc
 
-##Check class of grab data
+## Check class of grab data
+
 ```{r}
 class(origin_df)
 ```
 
-## convert data frame to sf
+## Converting Aspatial object to geospatial
 ```{r}
 # Convert tibble to sf object
-sf_object <- st_as_sf(origin_df, coords = c("rawlng", "rawlat"), crs = 3414)
+sf_object <- st_as_sf(origin_df, coords = c("rawlng", "rawlat"), crs = 4326) %>% st_transform(crs = 3414)
 
-sf_object2 <- st_transform(sf_object, crs = 3414)
 ```
-### now we can plot our map + points
-## We can plot the points on the map to see how it looks 
+
+
+## We can plot the points on the map to see how it looks
+
 ```{r}
-#lines <- st_cast(roads_in_singapore$geometry, "MULTILINESTRING")
-#lines <- st_cast(lines, "LINESTRING")
+lines <- st_cast(roads_in_singapore$geometry, "MULTILINESTRING")
+lines <- st_cast(lines, "LINESTRING")
 ```
 
 ```{r}
@@ -188,84 +228,279 @@ st_crs(lines)
 ```
 
 ```{r}
-#tmap_mode('view')
-#tm_shape(lines)+tm_lines()+
-#  tm_shape(sf_object)+tm_dots()
-#tmap_mode('plot')
-
-```
-
-### Plotting grab points - CRS 3414 on the map
-```{r}
 tmap_mode('view')
-  tm_shape(sf_object2)+tm_dots()+tm_shape(mpsz3414)+tm_polygons()
+tm_shape(lines)+tm_lines()+
+  tm_shape(sf_object)+tm_dots()
 tmap_mode('plot')
 
 ```
 
-## Converting to Spatial points
 ```{r}
-origin_df2 <- as_Spatial(sf_object2)
+tmap_mode('view')
+  tm_shape(mpsz3414)+tm_polygons()+tm_shape(sf_object)+tm_dots()
+tmap_mode('plot')
+
+```
+## Converting grab posisi into raster ppp format
+### lab way of converting aspatial to project on map
+
+```{r}
+origin_df2 <- as_Spatial(sf_object)
 object_sp <- as(origin_df2, "SpatialPoints")
+object_sp
 object_ppp <- as(object_sp, "ppp")
 object_ppp
 ```
-## lab way of converting aspatial to project on map
-```{r}
-testout <- as(object_ppp,'SpatialPoints')
-tmap_mode('view')
-  tm_shape(mpsz3414)+tm_polygons()+tm_shape(testout)+tm_dots()
-tmap_mode('plot')
-
-```
-
-
-
+## plotting ppp to see how it looks like
 ```{r}
 plot(object_ppp)
 ```
+## Check if lat long makes sense -> conversion is correct
+```{r}
+object_ppp
+
+```
+### Tm plot with spatial points + map 
+```{r}
+tmap_mode('view')
+  tm_shape(mpsz3414)+tm_polygons()+tm_shape(object_sp)+tm_dots()
+tmap_mode('plot')
+
+```
+
 
 ## Handling Duplicated Points
+
 ```{r}
 any(duplicated(object_ppp))
 ```
-
-# KDE
-
-
-# NKDE
-
+### Jittering duplicates away
+```{r}
+object_ppp_jit <- rjitter(object_ppp, 
+                             retry=TRUE, 
+                             nsim=1, 
+                             drop=TRUE)
+```
+### Checking duplicates after jitter
+```{r}
+any(duplicated(object_ppp))
+```
+## Creating owin object
+## Converting mpsz3414 to SP spatial class before converting to owin object
+```{r}
+mpsz3414
+```
 
 
 ```{r}
+sg_sp <- as_Spatial(mpsz3414)
+sg_sp <- as(sg_sp, "SpatialPolygons")
+sg_sp
+object_ppp
+sg_owin2 <- as(sg_sp, "owin")
+sg_owin2
+```
+## Plotting sg owin
+```{r}
+plot(sg_owin2)
+```
+## Combine point object (grab) with sg owin 
+```{r}
+grabSg_ppp = object_ppp[sg_owin2]
+plot(grabSg_ppp)
+```
+
+# KDE - Kernal Density Estimations
+### Grab posisi (1 dataset)
+```{r}
 tmap_mode('view')
-  tm_shape(roads_in_singapore)+tm_lines()+tm_shape(testout)+tm_dots()
+tm_shape(object_sp) +
+  tm_dots(alpha=0.4, 
+          size=0.05)
+```
+
+
+## Using automatic bandwidth selection - diggle
+```{r}
+kde_grab_sg <- density(grabSg_ppp,
+                              sigma=bw.diggle,
+                              edge=TRUE,
+                            kernel="gaussian") 
+```
+
+```{r}
+plot(kde_grab_sg)
+```
+## Rescaling trhe values as its too small 
+```{r}
+grabSg_ppp.km <- rescale(grabSg_ppp, 1000, "km")
+kde_grab_sg <- density(grabSg_ppp.km, sigma=bw.diggle, edge=TRUE, kernel="gaussian")
+plot(kde_grab_sg)
+```
+## Other automatic bandwidth 
+```{r}
+ bw.CvL(grabSg_ppp.km)
+```
+```{r}
+grabSg_ppp.ppl <- density(grabSg_ppp.km, 
+                               sigma=bw.ppl, 
+                               edge=TRUE,
+                               kernel="gaussian")
+par(mfrow=c(1,2))
+plot(kde_grab_sg, main = "bw.diggle")
+plot(grabSg_ppp.ppl, main = "bw.ppl")
+```
+### Observation 
+.ppl is better in showing different clusters on the map. Bw not so good, only showing those with very high intensity
+
+## Working with different density methods
+```{r}
+par(mfrow=c(2,2))
+plot(density(grabSg_ppp.km, 
+             sigma=bw.ppl, 
+             edge=TRUE, 
+             kernel="gaussian"), 
+     main="Gaussian")
+plot(density(grabSg_ppp.km, 
+             sigma=bw.ppl, 
+             edge=TRUE, 
+             kernel="epanechnikov"), 
+     main="Epanechnikov")
+plot(density(grabSg_ppp.km, 
+             sigma=bw.ppl, 
+             edge=TRUE, 
+             kernel="quartic"), 
+     main="Quartic")
+plot(density(grabSg_ppp.km, 
+             sigma=bw.ppl, 
+             edge=TRUE, 
+             kernel="disc"), 
+     main="Disc")
+```
+
+## Fixed bandwith method
+```{r}
+kde_grabSg_800 <- density(grabSg_ppp.km, sigma=0.8, edge=TRUE, kernel="gaussian")
+plot(kde_grabSg_800)
+```
+###Findings
+Using the fixed bandwith, it it easier to see / adjust the headmap to see which areas in singapore are more intense
+
+##Comparing regions
+### TOA PAYOH and TAMPINES as its the most intense regions
+```{r}
+mpsz2 <- as_Spatial(mpsz)
+tp = mpsz2[mpsz2@data$PLN_AREA_N == "TOA PAYOH",]
+tm = mpsz2[mpsz2@data$PLN_AREA_N == "TAMPINES",]
+```
+
+### Plotting them out
+```{r}
+par(mfrow=c(2,2))
+plot(tp, main = "Toa payoh")
+plot(tm, main = "Tampines")
+
+```
+### Converting to spatial polygons
+```{r}
+tm_sp = as(tm, "SpatialPolygons")
+tp_sp = as(tp, "SpatialPolygons")
+
+```
+
+### Making them owin
+```{r}
+tp_owin = as(tp_sp, "owin")
+tm_owin = as(tm_sp, "owin")
+```
+
+### Combinining
+```{r}
+grab_tp_ppp = object_ppp_jit[tp_owin]
+grab_tm_ppp = object_ppp_jit[tm_owin]
+```
+### Rescaling
+```{r}
+grab_tp_ppp.km = rescale(grab_tp_ppp, 1000, "km")
+grab_tm_ppp.km = rescale(grab_tm_ppp, 1000, "km")
+```
+### Plot
+```{r}
+par(mfrow=c(2,2))
+plot(grab_tp_ppp.km, main="Toa Payoh")
+plot(grab_tm_ppp.km, main="Tampines")
+```
+### Findings
+
+toh payoh intensity looks spread out whereas tampines one looks very clustered
+
+### Computing KDE for each region (automatic)
+```{r}
+par(mfrow=c(2,2))
+plot(density(grab_tp_ppp.km, 
+             sigma=bw.diggle, 
+             edge=TRUE, 
+             kernel="gaussian"),
+     main="Toa Payoh")
+plot(density(grab_tm_ppp.km, 
+             sigma=bw.diggle, 
+             edge=TRUE, 
+             kernel="gaussian"),
+     main="Tampines")
+```
+### Computing using fixed bandwith
+```{r}
+par(mfrow=c(2,2))
+plot(density(grab_tp_ppp.km, 
+             sigma=0.25, 
+             edge=TRUE, 
+             kernel="gaussian"),
+     main="Toa Payoh")
+plot(density(grab_tm_ppp.km, 
+             sigma=0.25, 
+             edge=TRUE, 
+             kernel="gaussian"),
+     main="Tampines")
+```
+###Findings
+Again, fixed method is better in identifying patterns
+
+# NKDE# NKDE
+```{r}
+tmap_mode('view')
+  tm_shape(roads_in_singapore)+tm_lines()+tm_shape(object_sp)+tm_dots()
+tmap_mode('plot')
+```
+
+```{r}
+tmap_mode('view')
+  tm_shape(lines)+tm_lines()+tm_shape(testout)+tm_dots()
 tmap_mode('plot')
 ```
 
 
+
 ```{r}
-lines_sf <- st_as_sf(roads_in_singapore)
+st_geometry_type(lines)
+```
+
+```{r}
+lines_sf <- st_as_sf(lines)
 lixels <- lixelize_lines(lines_sf,750,mindist=375)
 ```
 
-
-
-
-
-
 ```{r}
-#all_linestring <- all(st_geometry_type(lines) == "LINESTRING")
-#
-#print(all_linestring)
+all_linestring <- all(st_geometry_type(lines) == "LINESTRING")
+
+print(all_linestring)
 ```
 
 ```{r}
 # Check dimensions of st_drop_geometry(lines)
-#lines_sf <- st_as_sf(lines)
-#dim(st_drop_geometry(lines_sf))
+lines_sf <- st_as_sf(lines)
+dim(st_drop_geometry(lines_sf))
 
 # Check dimensions of result[[2]] + 1
-#dim(result[[2]] + 1)
+dim(result[[2]] + 1)
 
 ```
