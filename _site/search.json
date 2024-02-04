@@ -537,5 +537,299 @@
     "title": "IS415-GAA",
     "section": "",
     "text": "pacman::p_load(sf, spdep, tmap, tidyverse, knitr, GWmodel)\n\n\nhunan &lt;- st_read(dsn = \"data/geospatial\", \n                 layer = \"Hunan\")\n\nReading layer `Hunan' from data source \n  `C:\\FieryCake\\IS415-GAA\\in-class_Ex\\In-class_Ex04\\data\\geospatial' \n  using driver `ESRI Shapefile'\nSimple feature collection with 88 features and 7 fields\nGeometry type: POLYGON\nDimension:     XY\nBounding box:  xmin: 108.7831 ymin: 24.6342 xmax: 114.2544 ymax: 30.12812\nGeodetic CRS:  WGS 84\n\n\n\nhunan2012 &lt;- read_csv(\"data/aspatial/Hunan_2012.csv\")\n\nRows: 88 Columns: 29\n── Column specification ────────────────────────────────────────────────────────\nDelimiter: \",\"\nchr  (2): County, City\ndbl (27): avg_wage, deposite, FAI, Gov_Rev, Gov_Exp, GDP, GDPPC, GIO, Loan, ...\n\nℹ Use `spec()` to retrieve the full column specification for this data.\nℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.\n\n\n\nhunan &lt;- left_join(hunan,hunan2012)%&gt;%\n  select(1:4, 7, 15)\n\nJoining with `by = join_by(County)`\n\n\n\nhunan_sp &lt;- hunan %&gt;% as_Spatial()\n\n\ngwstat &lt;-gwss(data=hunan_sp,\n              vars = \"GDPPC\",\n              bw = 6,\n              kernel = \"bisquare\",\n              adaptive = TRUE,\n              longlat = T\n              \n              )\n\n\nbasemap &lt;- tm_shape(hunan) +\n  tm_polygons() +\n  tm_text(\"NAME_3\", size=0.5)\n\ngdppc &lt;- qtm(hunan, \"GDPPC\")\ntmap_arrange(basemap, gdppc, asp=1, ncol=2)\n\n\n\n\n\nwm_q &lt;- poly2nb(hunan, queen=TRUE)\n\n\nsummary(wm_q)\n\nNeighbour list object:\nNumber of regions: 88 \nNumber of nonzero links: 448 \nPercentage nonzero weights: 5.785124 \nAverage number of links: 5.090909 \nLink number distribution:\n\n 1  2  3  4  5  6  7  8  9 11 \n 2  2 12 16 24 14 11  4  2  1 \n2 least connected regions:\n30 65 with 1 link\n1 most connected region:\n85 with 11 links\n\n\n\nlongitude &lt;- map_dbl(hunan$geometry, ~st_centroid(.x)[[1]])\n\n\nlatitude &lt;- map_dbl(hunan$geometry, ~st_centroid(.x)[[2]])\n\n\ncoords &lt;- cbind(longitude, latitude)\n\n\nk1 &lt;- knn2nb(knearneigh(coords))\n\n\nk1dists &lt;- unlist(nbdists(k1, coords, longlat = TRUE))\n\n\nwm_d62 &lt;- dnearneigh(coords, 0, 62, longlat = TRUE)\nwm_d62\n\nNeighbour list object:\nNumber of regions: 88 \nNumber of nonzero links: 324 \nPercentage nonzero weights: 4.183884 \nAverage number of links: 3.681818 \n\n\nbased on 62km distance, find neighbours\n\nknn6 &lt;- knn2nb(knearneigh(coords, k=6))\nknn6\n\nNeighbour list object:\nNumber of regions: 88 \nNumber of nonzero links: 528 \nPercentage nonzero weights: 6.818182 \nAverage number of links: 6 \nNon-symmetric neighbours list\n\n\nFind those with 6 or higher neighbours\n\nrswm_q &lt;- nb2listw(wm_q, style=\"W\", zero.policy = TRUE)\nrswm_q\n\nCharacteristics of weights list object:\nNeighbour list object:\nNumber of regions: 88 \nNumber of nonzero links: 448 \nPercentage nonzero weights: 5.785124 \nAverage number of links: 5.090909 \n\nWeights style: W \nWeights constants summary:\n   n   nn S0       S1       S2\nW 88 7744 88 37.86334 365.9147\n\n\nzero.policy - dont want 0\nlag.sum - doesnt include yourself. -&gt; Meaning of it is takes the neighbouring neighbours, all their value, sum up, multipy by weight and get end results (sum of neighours without himself)"
+  },
+  {
+    "objectID": "take_home_Ex/take_home_Ex_01/take_home_Ex_01.html",
+    "href": "take_home_Ex/take_home_Ex_01/take_home_Ex_01.html",
+    "title": "Take home 1",
+    "section": "",
+    "text": "The specific tasks of this take-home exercise are as follows:\nUsing appropriate function of sf and tidyverse, preparing the following geospatial data layer in sf tibble data.frames: Grab taxi location points either by origins or destinations. Road layer within Singapore excluding outer islands. Singapore boundary layer excluding outer islands Using the extracted data, derive traditional Kernel Density Estimation layers. Using the extracted data, derive either Network Kernel Density Estimation (NKDE) or Temporal Network Kernel Density Estimation (TNKDE) Using appropriate tmap functions, display the kernel density layers on openstreetmap of Singapore. Describe the spatial patterns revealed by the kernel density maps."
+  },
+  {
+    "objectID": "take_home_Ex/take_home_Ex_01/take_home_Ex_01.html#tasks",
+    "href": "take_home_Ex/take_home_Ex_01/take_home_Ex_01.html#tasks",
+    "title": "Take home 1",
+    "section": "",
+    "text": "The specific tasks of this take-home exercise are as follows:\nUsing appropriate function of sf and tidyverse, preparing the following geospatial data layer in sf tibble data.frames: Grab taxi location points either by origins or destinations. Road layer within Singapore excluding outer islands. Singapore boundary layer excluding outer islands Using the extracted data, derive traditional Kernel Density Estimation layers. Using the extracted data, derive either Network Kernel Density Estimation (NKDE) or Temporal Network Kernel Density Estimation (TNKDE) Using appropriate tmap functions, display the kernel density layers on openstreetmap of Singapore. Describe the spatial patterns revealed by the kernel density maps."
+  },
+  {
+    "objectID": "take_home_Ex/take_home_Ex_01/take_home_Ex_01.html#importing-packages",
+    "href": "take_home_Ex/take_home_Ex_01/take_home_Ex_01.html#importing-packages",
+    "title": "Take home 1",
+    "section": "Importing packages",
+    "text": "Importing packages\n\npacman::p_load(tidyverse,sf,tmap,lubridate,arrow,spNetwork,classInt,viridis,raster,spatstat)\nlibrary(maptools)"
+  },
+  {
+    "objectID": "take_home_Ex/take_home_Ex_01/take_home_Ex_01.html#geospatial",
+    "href": "take_home_Ex/take_home_Ex_01/take_home_Ex_01.html#geospatial",
+    "title": "Take home 1",
+    "section": "Geospatial",
+    "text": "Geospatial"
+  },
+  {
+    "objectID": "take_home_Ex/take_home_Ex_01/take_home_Ex_01.html#importing-data",
+    "href": "take_home_Ex/take_home_Ex_01/take_home_Ex_01.html#importing-data",
+    "title": "Take home 1",
+    "section": "1.1 Importing data",
+    "text": "1.1 Importing data\n\nMap data\n\nmpsz &lt;- st_read(dsn = \"../../Hands-on_Ex/data/geospatial\", \n                layer = \"MP14_SUBZONE_WEB_PL\")\nst_set_crs(mpsz, 3414)\n\n\n\nRoad data\n\nroads_sf&lt;-st_read(dsn = \"data/geospatial\",layer= \"gis_osm_roads_free_1\")\n\n\n\nImporting Grab posisi 1\n\ngrab1 &lt;-read_parquet(\"data/aspatial/GrabPosisi/part-00000-8bbff892-97d2-4011-9961-703e38972569.c000.snappy.parquet\")"
+  },
+  {
+    "objectID": "take_home_Ex/take_home_Ex_01/take_home_Ex_01.html#add-grab-data-together-concat-the-data-together",
+    "href": "take_home_Ex/take_home_Ex_01/take_home_Ex_01.html#add-grab-data-together-concat-the-data-together",
+    "title": "Take home 1",
+    "section": "Add grab data together Concat the data together",
+    "text": "Add grab data together Concat the data together\n\n#grab2 &lt;-read_parquet(\"data/aspatial/GrabPosisi/part-00001-8bbff892-97d2-4011-9961-703e38972569.c000.snappy.parquet\")\n#grab3 &lt;-read_parquet(\"data/aspatial/GrabPosisi/part-00002-8bbff892-97d2-4011-9961-703e38972569.c000.snappy.parquet\")\n#grab4 &lt;-read_parquet(\"data/aspatial/GrabPosisi/part-00003-8bbff892-97d2-4011-9961-703e38972569.c000.snappy.parquet\")\n#grab5 &lt;-read_parquet(\"data/aspatial/GrabPosisi/part-00004-8bbff892-97d2-4011-9961-703e38972569.c000.snappy.parquet\")\n#grab6 &lt;-read_parquet(\"data/aspatial/GrabPosisi/part-00005-8bbff892-97d2-4011-9961-703e38972569.c000.snappy.parquet\")\n#grab7 &lt;-read_parquet(\"data/aspatial/GrabPosisi/part-00006-8bbff892-97d2-4011-9961-703e38972569.c000.snappy.parquet\")\n#grab8 &lt;-read_parquet(\"data/aspatial/GrabPosisi/part-00007-8bbff892-97d2-4011-9961-703e38972569.c000.snappy.parquet\")\n#grab9 &lt;-read_parquet(\"data/aspatial/GrabPosisi/part-00008-8bbff892-97d2-4011-9961-703e38972569.c000.snappy.parquet\")\n#grab10 &lt;-read_parquet(\"data/aspatial/GrabPosisi/part-00009-8bbff892-97d2-4011-9961-703e38972569.c000.snappy.parquet\")\n#grab_combined_df &lt;- bind_rows(grab1,grab2,grab3,grab4,grab5,grab6,grab7,grab8,grab9,grab10)"
+  },
+  {
+    "objectID": "take_home_Ex/take_home_Ex_01/take_home_Ex_01.html#pre-processing",
+    "href": "take_home_Ex/take_home_Ex_01/take_home_Ex_01.html#pre-processing",
+    "title": "Take home 1",
+    "section": "1.2 Pre-processing",
+    "text": "1.2 Pre-processing\n\nSources - Megan’s journey - to check if geometries are valid\n\nlength(which(st_is_valid(roads_sf) == FALSE))\nlength(which(st_is_valid(mpsz) == FALSE))\n\n\nmpsz &lt;- st_make_valid(mpsz)\nlength(which(st_is_valid(mpsz) == FALSE))\n## source: https://r-spatial.github.io/sf/reference/valid.html - make_valid"
+  },
+  {
+    "objectID": "take_home_Ex/take_home_Ex_01/take_home_Ex_01.html#checking-coordinate-system",
+    "href": "take_home_Ex/take_home_Ex_01/take_home_Ex_01.html#checking-coordinate-system",
+    "title": "Take home 1",
+    "section": "1.3 Checking Coordinate system",
+    "text": "1.3 Checking Coordinate system\n\nChecking MPSZ\n\nst_crs(mpsz)\n\n\n\nChecking Roads\n\nst_crs(roads_sf)\n\n\n\nMaking roads data into projected SVY21\n\nroads3414 &lt;- st_transform(roads_sf, \n                              crs = 3414)\nst_crs(roads3414)"
+  },
+  {
+    "objectID": "take_home_Ex/take_home_Ex_01/take_home_Ex_01.html#removing-of-outer-islands",
+    "href": "take_home_Ex/take_home_Ex_01/take_home_Ex_01.html#removing-of-outer-islands",
+    "title": "Take home 1",
+    "section": "1.4 Removing of outer islands",
+    "text": "1.4 Removing of outer islands\n\nsg_sf &lt;- st_union(mpsz,by_feature = FALSE)\n\nplot(sg_sf, col = \"lightblue\", main = \"Sea Area\")\n\nBig island\n\n##source - https://stackoverflow.com/questions/42512431/how-to-separate-a-multipolygon-geometry-into-several-polygons-objects-after-perf\n\nind_poly &lt;- st_cast(sg_sf, \"POLYGON\")\n\nareas &lt;- st_area(ind_poly)\n\nlargest_index &lt;- which.max(areas)\n\nlargest_polygon &lt;- ind_poly[largest_index]\n\nplot(largest_polygon)\n\nCheck crs of largest / convert to SVY\n\nmpsz3414 &lt;- st_transform(largest_polygon, \n                              crs = 3414)\nst_crs(mpsz3414)"
+  },
+  {
+    "objectID": "take_home_Ex/take_home_Ex_01/take_home_Ex_01.html#getting-polygons-inside-big-island",
+    "href": "take_home_Ex/take_home_Ex_01/take_home_Ex_01.html#getting-polygons-inside-big-island",
+    "title": "Take home 1",
+    "section": "1.5 Getting polygons inside big island",
+    "text": "1.5 Getting polygons inside big island\n\nmpsz3414\nmpsz\n\n\nmpsz3414\nmpsz\nislandPoly &lt;- st_intersection(st_set_crs(mpsz, 3414),st_set_crs(mpsz3414, 3414))\n\n\nplot(islandPoly)"
+  },
+  {
+    "objectID": "take_home_Ex/take_home_Ex_01/take_home_Ex_01.html#changing-timestamp-to-correct-one",
+    "href": "take_home_Ex/take_home_Ex_01/take_home_Ex_01.html#changing-timestamp-to-correct-one",
+    "title": "Take home 1",
+    "section": "2.1 Changing timestamp to correct one",
+    "text": "2.1 Changing timestamp to correct one\n\ngrab1$pingtimestamp &lt;- as_datetime(grab1$pingtimestamp)\n\n\n\n\n\n\n\nDIY\n\n\n\nWrite a code chunk to - Extract trip origin location - derice three new column, weekday, starting hour and day of the month - name the output tibble data.frame origin_df\n\n\n\norigin_df &lt;-grab1 %&gt;% \n  group_by(trj_id)%&gt;%\n  arrange(pingtimestamp) %&gt;%\n  filter(row_number()==1) %&gt;%\n  mutate(weekday = wday(pingtimestamp,\n                        label=TRUE,\n                        abbr = TRUE),\n         start_hr = factor(hour(pingtimestamp)),\n         day = factor(mday(pingtimestamp)))\n\n\n# Perform a spatial join to filter roads within Singapore\n#roadI &lt;- roads3414[10]\n#roads_in_singapore &lt;- st_intersection(roadI, mpsz3414)\n\n# Plot the roads within Singapore\n#plot(roads_in_singapore)\n# Simplify geometry of road data (adjust tolerance as needed)\nroad_data &lt;- st_simplify(roads3414, preserveTopology = TRUE)\n\n\n# Perform spatial intersection after simplification\nroads_in_singapore &lt;- st_intersection(road_data, mpsz3414)"
+  },
+  {
+    "objectID": "take_home_Ex/take_home_Ex_01/take_home_Ex_01.html#plot-map-and-roads-to-check",
+    "href": "take_home_Ex/take_home_Ex_01/take_home_Ex_01.html#plot-map-and-roads-to-check",
+    "title": "Take home 1",
+    "section": "2.2 plot map and roads to check",
+    "text": "2.2 plot map and roads to check\n\ntm_shape(roads_in_singapore$geometry)+tm_lines()"
+  },
+  {
+    "objectID": "take_home_Ex/take_home_Ex_01/take_home_Ex_01.html#check-class-of-grab-data",
+    "href": "take_home_Ex/take_home_Ex_01/take_home_Ex_01.html#check-class-of-grab-data",
+    "title": "Take home 1",
+    "section": "Check class of grab data",
+    "text": "Check class of grab data\n\nclass(origin_df)"
+  },
+  {
+    "objectID": "take_home_Ex/take_home_Ex_01/take_home_Ex_01.html#converting-aspatial-object-to-geospatial",
+    "href": "take_home_Ex/take_home_Ex_01/take_home_Ex_01.html#converting-aspatial-object-to-geospatial",
+    "title": "Take home 1",
+    "section": "2.3 Converting Aspatial object to geospatial",
+    "text": "2.3 Converting Aspatial object to geospatial\n\n# Convert tibble to sf object\nsf_object &lt;- st_as_sf(origin_df, coords = c(\"rawlng\", \"rawlat\"), crs = 4326) %&gt;% st_transform(crs = 3414)\n#sf_object2 &lt;- st_as_sf(grab_combined_df, coords = c(\"rawlng\", \"rawlat\"), crs = 4326) %&gt;% st_transform(crs = 3414)"
+  },
+  {
+    "objectID": "take_home_Ex/take_home_Ex_01/take_home_Ex_01.html#we-can-plot-the-points-on-the-map-to-see-how-it-looks",
+    "href": "take_home_Ex/take_home_Ex_01/take_home_Ex_01.html#we-can-plot-the-points-on-the-map-to-see-how-it-looks",
+    "title": "Take home 1",
+    "section": "We can plot the points on the map to see how it looks",
+    "text": "We can plot the points on the map to see how it looks\n\nlines &lt;- st_cast(roads_in_singapore$geometry, \"MULTILINESTRING\")\nlines &lt;- st_cast(lines, \"LINESTRING\")\n\n\nst_crs(sf_object)\nst_crs(lines)\n\n\ntm_shape(lines)+tm_lines()+\n  tm_shape(sf_object)+tm_dots()\n\n\n  tm_shape(mpsz3414)+tm_polygons()+tm_shape(sf_object)+tm_dots()"
+  },
+  {
+    "objectID": "take_home_Ex/take_home_Ex_01/take_home_Ex_01.html#converting-grab-posisi-into-raster-ppp-format",
+    "href": "take_home_Ex/take_home_Ex_01/take_home_Ex_01.html#converting-grab-posisi-into-raster-ppp-format",
+    "title": "Take home 1",
+    "section": "2.4 Converting grab posisi into raster ppp format",
+    "text": "2.4 Converting grab posisi into raster ppp format\n\nlab way of converting aspatial to project on map\n\norigin_df2 &lt;- as_Spatial(sf_object)\nobject_sp &lt;- as(origin_df2, \"SpatialPoints\")\nobject_sp\nobject_ppp &lt;- as(object_sp, \"ppp\")\nobject_ppp"
+  },
+  {
+    "objectID": "take_home_Ex/take_home_Ex_01/take_home_Ex_01.html#plotting-ppp-to-see-how-it-looks-like",
+    "href": "take_home_Ex/take_home_Ex_01/take_home_Ex_01.html#plotting-ppp-to-see-how-it-looks-like",
+    "title": "Take home 1",
+    "section": "plotting ppp to see how it looks like",
+    "text": "plotting ppp to see how it looks like\n\nplot(object_ppp)"
+  },
+  {
+    "objectID": "take_home_Ex/take_home_Ex_01/take_home_Ex_01.html#check-if-lat-long-makes-sense---conversion-is-correct",
+    "href": "take_home_Ex/take_home_Ex_01/take_home_Ex_01.html#check-if-lat-long-makes-sense---conversion-is-correct",
+    "title": "Take home 1",
+    "section": "Check if lat long makes sense -> conversion is correct",
+    "text": "Check if lat long makes sense -&gt; conversion is correct\n\nobject_ppp\n\n\nTm plot with spatial points + map\n\ntmap_mode('view')\n  tm_shape(mpsz3414)+tm_polygons()+tm_shape(object_sp)+tm_dots()\ntmap_mode('plot')"
+  },
+  {
+    "objectID": "take_home_Ex/take_home_Ex_01/take_home_Ex_01.html#handling-duplicated-points",
+    "href": "take_home_Ex/take_home_Ex_01/take_home_Ex_01.html#handling-duplicated-points",
+    "title": "Take home 1",
+    "section": "2.5Handling Duplicated Points",
+    "text": "2.5Handling Duplicated Points\n\nany(duplicated(object_ppp))\n\n\nJittering duplicates away\n\nobject_ppp_jit &lt;- rjitter(object_ppp, \n                             retry=TRUE, \n                             nsim=1, \n                             drop=TRUE)\n\n\n\nChecking duplicates after jitter\n\nany(duplicated(object_ppp))"
+  },
+  {
+    "objectID": "take_home_Ex/take_home_Ex_01/take_home_Ex_01.html#creating-owin-object",
+    "href": "take_home_Ex/take_home_Ex_01/take_home_Ex_01.html#creating-owin-object",
+    "title": "Take home 1",
+    "section": "Creating owin object",
+    "text": "Creating owin object"
+  },
+  {
+    "objectID": "take_home_Ex/take_home_Ex_01/take_home_Ex_01.html#converting-mpsz3414-to-sp-spatial-class-before-converting-to-owin-object",
+    "href": "take_home_Ex/take_home_Ex_01/take_home_Ex_01.html#converting-mpsz3414-to-sp-spatial-class-before-converting-to-owin-object",
+    "title": "Take home 1",
+    "section": "Converting mpsz3414 to SP spatial class before converting to owin object",
+    "text": "Converting mpsz3414 to SP spatial class before converting to owin object\n\nmpsz3414\n\n\nsg_sp &lt;- as_Spatial(mpsz3414)\nsg_sp &lt;- as(sg_sp, \"SpatialPolygons\")\nsg_sp\nobject_ppp\nsg_owin2 &lt;- as(sg_sp, \"owin\")\nsg_owin2"
+  },
+  {
+    "objectID": "take_home_Ex/take_home_Ex_01/take_home_Ex_01.html#plotting-sg-owin",
+    "href": "take_home_Ex/take_home_Ex_01/take_home_Ex_01.html#plotting-sg-owin",
+    "title": "Take home 1",
+    "section": "Plotting sg owin",
+    "text": "Plotting sg owin\n\nplot(sg_owin2)"
+  },
+  {
+    "objectID": "take_home_Ex/take_home_Ex_01/take_home_Ex_01.html#combine-point-object-grab-with-sg-owin",
+    "href": "take_home_Ex/take_home_Ex_01/take_home_Ex_01.html#combine-point-object-grab-with-sg-owin",
+    "title": "Take home 1",
+    "section": "Combine point object (grab) with sg owin",
+    "text": "Combine point object (grab) with sg owin\n\ngrabSg_ppp = object_ppp[sg_owin2]\nplot(grabSg_ppp)"
+  },
+  {
+    "objectID": "take_home_Ex/take_home_Ex_01/take_home_Ex_01.html#using-automatic-bandwidth-selection---diggle",
+    "href": "take_home_Ex/take_home_Ex_01/take_home_Ex_01.html#using-automatic-bandwidth-selection---diggle",
+    "title": "Take home 1",
+    "section": "3.1 Using automatic bandwidth selection - diggle",
+    "text": "3.1 Using automatic bandwidth selection - diggle\n\nkde_grab_sg &lt;- density(grabSg_ppp,\n                              sigma=bw.diggle,\n                              edge=TRUE,\n                            kernel=\"gaussian\") \n\n\nplot(kde_grab_sg)"
+  },
+  {
+    "objectID": "take_home_Ex/take_home_Ex_01/take_home_Ex_01.html#rescaling-trhe-values-as-its-too-small",
+    "href": "take_home_Ex/take_home_Ex_01/take_home_Ex_01.html#rescaling-trhe-values-as-its-too-small",
+    "title": "Take home 1",
+    "section": "3.1.1 Rescaling trhe values as its too small",
+    "text": "3.1.1 Rescaling trhe values as its too small\n\ngrabSg_ppp.km &lt;- rescale(grabSg_ppp, 1000, \"km\")\nkde_grab_sg &lt;- density(grabSg_ppp.km, sigma=bw.diggle, edge=TRUE, kernel=\"gaussian\")\nplot(kde_grab_sg)"
+  },
+  {
+    "objectID": "take_home_Ex/take_home_Ex_01/take_home_Ex_01.html#other-automatic-bandwidth",
+    "href": "take_home_Ex/take_home_Ex_01/take_home_Ex_01.html#other-automatic-bandwidth",
+    "title": "Take home 1",
+    "section": "3.1.2 Other automatic bandwidth",
+    "text": "3.1.2 Other automatic bandwidth\n\n bw.CvL(grabSg_ppp.km)\n\n\ngrabSg_ppp.ppl &lt;- density(grabSg_ppp.km, \n                               sigma=bw.ppl, \n                               edge=TRUE,\n                               kernel=\"gaussian\")\npar(mfrow=c(1,2))\nplot(kde_grab_sg, main = \"bw.diggle\")\nplot(grabSg_ppp.ppl, main = \"bw.ppl\")\n\n\n3.2 Observation\n.ppl is better in showing different clusters on the map. Bw not so good, only showing those with very high intensity"
+  },
+  {
+    "objectID": "take_home_Ex/take_home_Ex_01/take_home_Ex_01.html#working-with-different-density-methods",
+    "href": "take_home_Ex/take_home_Ex_01/take_home_Ex_01.html#working-with-different-density-methods",
+    "title": "Take home 1",
+    "section": "3.3 Working with different density methods",
+    "text": "3.3 Working with different density methods\n\npar(mfrow=c(2,2))\nplot(density(grabSg_ppp.km, \n             sigma=bw.ppl, \n             edge=TRUE, \n             kernel=\"gaussian\"), \n     main=\"Gaussian\")\nplot(density(grabSg_ppp.km, \n             sigma=bw.ppl, \n             edge=TRUE, \n             kernel=\"epanechnikov\"), \n     main=\"Epanechnikov\")\nplot(density(grabSg_ppp.km, \n             sigma=bw.ppl, \n             edge=TRUE, \n             kernel=\"quartic\"), \n     main=\"Quartic\")\nplot(density(grabSg_ppp.km, \n             sigma=bw.ppl, \n             edge=TRUE, \n             kernel=\"disc\"), \n     main=\"Disc\")"
+  },
+  {
+    "objectID": "take_home_Ex/take_home_Ex_01/take_home_Ex_01.html#fixed-bandwith-method",
+    "href": "take_home_Ex/take_home_Ex_01/take_home_Ex_01.html#fixed-bandwith-method",
+    "title": "Take home 1",
+    "section": "3.3.1 Fixed bandwith method",
+    "text": "3.3.1 Fixed bandwith method\n\nkde_grabSg_800 &lt;- density(grabSg_ppp.km, sigma=0.8, edge=TRUE, kernel=\"gaussian\")\nplot(kde_grabSg_800)\n\n\n3.3.2 Findings\nUsing the fixed bandwith, it it easier to see / adjust the headmap to see which areas in singapore are more intense"
+  },
+  {
+    "objectID": "take_home_Ex/take_home_Ex_01/take_home_Ex_01.html#comparing-regions",
+    "href": "take_home_Ex/take_home_Ex_01/take_home_Ex_01.html#comparing-regions",
+    "title": "Take home 1",
+    "section": "3.4 Comparing regions",
+    "text": "3.4 Comparing regions\n\n3.4.1 TOA PAYOH and TAMPINES as its the most intense regions\n\nmpsz2 &lt;- as_Spatial(mpsz)\ntp = mpsz2[mpsz2@data$PLN_AREA_N == \"TOA PAYOH\",]\ntm = mpsz2[mpsz2@data$PLN_AREA_N == \"TAMPINES\",]\n\n\n\n3.4.2 Plotting them out\n\npar(mfrow=c(2,2))\nplot(tp, main = \"Toa payoh\")\nplot(tm, main = \"Tampines\")\n\n\n\n3.4.3 Converting to spatial polygons\n\ntm_sp = as(tm, \"SpatialPolygons\")\ntp_sp = as(tp, \"SpatialPolygons\")\n\n\n\n3.4.4 Making them owin\n\ntp_owin = as(tp_sp, \"owin\")\ntm_owin = as(tm_sp, \"owin\")\n\n\n\n3.4.5 Combinining\n\ngrab_tp_ppp = object_ppp_jit[tp_owin]\ngrab_tm_ppp = object_ppp_jit[tm_owin]\n\n\n\n3.4.6 Rescaling\n\ngrab_tp_ppp.km = rescale(grab_tp_ppp, 1000, \"km\")\ngrab_tm_ppp.km = rescale(grab_tm_ppp, 1000, \"km\")\n\n\n\n3.4.6 Plot\n\npar(mfrow=c(2,2))\nplot(grab_tp_ppp.km, main=\"Toa Payoh\")\nplot(grab_tm_ppp.km, main=\"Tampines\")"
+  },
+  {
+    "objectID": "take_home_Ex/take_home_Ex_01/take_home_Ex_01.html#findings-1",
+    "href": "take_home_Ex/take_home_Ex_01/take_home_Ex_01.html#findings-1",
+    "title": "Take home 1",
+    "section": "3.5 Findings",
+    "text": "3.5 Findings\ntoh payoh intensity looks spread out whereas tampines one looks very clustered"
+  },
+  {
+    "objectID": "take_home_Ex/take_home_Ex_01/take_home_Ex_01.html#computing-kde-for-each-region-automatic",
+    "href": "take_home_Ex/take_home_Ex_01/take_home_Ex_01.html#computing-kde-for-each-region-automatic",
+    "title": "Take home 1",
+    "section": "3.6 Computing KDE for each region (automatic)",
+    "text": "3.6 Computing KDE for each region (automatic)\n\npar(mfrow=c(2,2))\nplot(density(grab_tp_ppp.km, \n             sigma=bw.diggle, \n             edge=TRUE, \n             kernel=\"gaussian\"),\n     main=\"Toa Payoh\")\nplot(density(grab_tm_ppp.km, \n             sigma=bw.diggle, \n             edge=TRUE, \n             kernel=\"gaussian\"),\n     main=\"Tampines\")"
+  },
+  {
+    "objectID": "take_home_Ex/take_home_Ex_01/take_home_Ex_01.html#computing-using-fixed-bandwith",
+    "href": "take_home_Ex/take_home_Ex_01/take_home_Ex_01.html#computing-using-fixed-bandwith",
+    "title": "Take home 1",
+    "section": "3.7 Computing using fixed bandwith",
+    "text": "3.7 Computing using fixed bandwith\n\npar(mfrow=c(2,2))\nplot(density(grab_tp_ppp.km, \n             sigma=0.25, \n             edge=TRUE, \n             kernel=\"gaussian\"),\n     main=\"Toa Payoh\")\nplot(density(grab_tm_ppp.km, \n             sigma=0.25, \n             edge=TRUE, \n             kernel=\"gaussian\"),\n     main=\"Tampines\")"
+  },
+  {
+    "objectID": "take_home_Ex/take_home_Ex_01/take_home_Ex_01.html#findings-2",
+    "href": "take_home_Ex/take_home_Ex_01/take_home_Ex_01.html#findings-2",
+    "title": "Take home 1",
+    "section": "3.8 Findings",
+    "text": "3.8 Findings\nAgain, fixed method is better in identifying patterns\n#4 NKDE\n\n  tm_shape(roads_in_singapore)+tm_lines()+tm_shape(object_sp)+tm_dots()"
+  },
+  {
+    "objectID": "take_home_Ex/take_home_Ex_01/take_home_Ex_01.html#checking-geom-type-for-streets",
+    "href": "take_home_Ex/take_home_Ex_01/take_home_Ex_01.html#checking-geom-type-for-streets",
+    "title": "Take home 1",
+    "section": "4.1 Checking geom type for streets",
+    "text": "4.1 Checking geom type for streets\n\n#st_geometry_type(lines)"
+  },
+  {
+    "objectID": "take_home_Ex/take_home_Ex_01/take_home_Ex_01.html#checking-if-lines-are-of-linestring-geom-type",
+    "href": "take_home_Ex/take_home_Ex_01/take_home_Ex_01.html#checking-if-lines-are-of-linestring-geom-type",
+    "title": "Take home 1",
+    "section": "4.2 Checking if lines are of linestring geom type",
+    "text": "4.2 Checking if lines are of linestring geom type\n\n#all_linestring &lt;- all(st_geometry_type(lines) == \"LINESTRING\")\n\n#print(all_linestring)"
+  },
+  {
+    "objectID": "take_home_Ex/take_home_Ex_01/take_home_Ex_01.html#lixelizing-the-streets",
+    "href": "take_home_Ex/take_home_Ex_01/take_home_Ex_01.html#lixelizing-the-streets",
+    "title": "Take home 1",
+    "section": "4.2 Lixelizing the streets",
+    "text": "4.2 Lixelizing the streets\n\n#lines_sf &lt;- st_as_sf(lines)\n#lixels &lt;- lixelize_lines(lines_sf,750,mindist=375)"
+  },
+  {
+    "objectID": "take_home_Ex/take_home_Ex_01/take_home_Ex_01.html#snapping",
+    "href": "take_home_Ex/take_home_Ex_01/take_home_Ex_01.html#snapping",
+    "title": "Take home 1",
+    "section": "4.3 Snapping",
+    "text": "4.3 Snapping\n\n#samples &lt;-lines_center(lixels)"
+  },
+  {
+    "objectID": "take_home_Ex/take_home_Ex_01/take_home_Ex_01.html#no-time-to-render-code-from-here-hence-commented",
+    "href": "take_home_Ex/take_home_Ex_01/take_home_Ex_01.html#no-time-to-render-code-from-here-hence-commented",
+    "title": "Take home 1",
+    "section": "No time to render code from here, hence commented!",
+    "text": "No time to render code from here, hence commented!"
+  },
+  {
+    "objectID": "take_home_Ex/take_home_Ex_01/take_home_Ex_01.html#calculating-densities",
+    "href": "take_home_Ex/take_home_Ex_01/take_home_Ex_01.html#calculating-densities",
+    "title": "Take home 1",
+    "section": "4.4 Calculating densities",
+    "text": "4.4 Calculating densities\n\n#densities&lt;-nkde(network,events=sf_object[1:100,],w=rep(1,nrow(sf_object)),samples=samples,\n#                kernel_name = \"quartic\",bw=300,div=\"bw\",method=\"simple\",digits=1,tol=1,grid_shape = #c(1,1),max_depth=8,agg=5 ##agg events within 5m radius (faster calculation)\n#                ,sparse=TRUE,verbose=FALSE)"
+  },
+  {
+    "objectID": "take_home_Ex/take_home_Ex_01/take_home_Ex_01.html#rescaling-1",
+    "href": "take_home_Ex/take_home_Ex_01/take_home_Ex_01.html#rescaling-1",
+    "title": "Take home 1",
+    "section": "4.5 Rescaling",
+    "text": "4.5 Rescaling\n\n#samples$density &lt;- densities\n#lixels$density &lt;- densities\n\n#samples$density &lt;- samples$density*1000\n#lixels$density &lt;- lixels$density*1000"
+  },
+  {
+    "objectID": "take_home_Ex/take_home_Ex_01/take_home_Ex_01.html#plotting",
+    "href": "take_home_Ex/take_home_Ex_01/take_home_Ex_01.html#plotting",
+    "title": "Take home 1",
+    "section": "Plotting",
+    "text": "Plotting\n\n#tm_shape(lixels)+\n#  tm_lines(col=\"density\")+\n#tm_shape(sf_object)+\n#  tm_dots()"
+  },
+  {
+    "objectID": "take_home_Ex/take_home_Ex_01/data/geospatial/MPSZ-2019.html",
+    "href": "take_home_Ex/take_home_Ex_01/data/geospatial/MPSZ-2019.html",
+    "title": "IS415-GAA",
+    "section": "",
+    "text": "&lt;!DOCTYPE qgis PUBLIC ‘http://mrcc.com/qgis.dtd’ ‘SYSTEM’&gt;     dataset\n\n\n        0 0     false"
   }
 ]

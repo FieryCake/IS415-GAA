@@ -1,0 +1,1120 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.3.450">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>IS415-GAA - Take home 1</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 20,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="../../styles.css">
+</head>
+
+<body class="nav-fixed">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg navbar-dark ">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">IS415-GAA</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-hands-on-exercises" role="button" data-bs-toggle="dropdown" aria-expanded="false" rel="" target="">
+ <span class="menu-text">Hands-on Exercises</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-hands-on-exercises">    
+        <li>
+    <a class="dropdown-item" href="../../Hands-on_Ex/Hands-on_Ex01/Hands-on_Ex01.html" rel="" target="">
+ <span class="dropdown-text">Hands-on Exercise 1</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../Hands-on_Ex/Hands-on_Ex02/Hands-on-Ex02.html" rel="" target="">
+ <span class="dropdown-text">Hands-on Exercise 2</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../Hands-on_Ex/Hands-on_Ex03/Hands-on-Ex03.html" rel="" target="">
+ <span class="dropdown-text">Hands-on Exercise 3</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../Hands-on_Ex/Hands-on_Ex04/Hands-on-Ex04.html" rel="" target="">
+ <span class="dropdown-text">Hands-on Exercise 4</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-in-class-exercises" role="button" data-bs-toggle="dropdown" aria-expanded="false" rel="" target="">
+ <span class="menu-text">In class Exercises</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-in-class-exercises">    
+        <li>
+    <a class="dropdown-item" href="../../in-class_Ex/In-class_Ex02/In-class_Ex02.html" rel="" target="">
+ <span class="dropdown-text">In class exercise 2</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../in-class_Ex/In-class-Ex03/In-class_Ex03.html" rel="" target="">
+ <span class="dropdown-text">In class exercise 3</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../in-class_Ex/In-class-Ex03/In-class_Ex03-NKDE.html" rel="" target="">
+ <span class="dropdown-text">In class exercise 3.2</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../in-class_Ex/In-class_Ex04/In-class_Ex04.html" rel="" target="">
+ <span class="dropdown-text">In class exercise 4.1</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-take-home-exercise" role="button" data-bs-toggle="dropdown" aria-expanded="false" rel="" target="">
+ <span class="menu-text">Take home exercise</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-take-home-exercise">    
+        <li>
+    <a class="dropdown-item" href="../../take_home_Ex/take_home_Ex_01/take_home_Ex_01.html" rel="" target="">
+ <span class="dropdown-text">Take home exercise 1</span></a>
+  </li>  
+    </ul>
+  </li>
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../index.html" rel="" target="">
+ <span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../about.html" rel="" target="">
+ <span class="menu-text">About</span></a>
+  </li>  
+</ul>
+            <div class="quarto-navbar-tools">
+</div>
+          </div> <!-- /navcollapse -->
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#take-home-ex-1" id="toc-take-home-ex-1" class="nav-link active" data-scroll-target="#take-home-ex-1">Take home ex 1</a>
+  <ul class="collapse">
+  <li><a href="#tasks" id="toc-tasks" class="nav-link" data-scroll-target="#tasks">Tasks</a></li>
+  </ul></li>
+  <li><a href="#setup" id="toc-setup" class="nav-link" data-scroll-target="#setup">Setup</a>
+  <ul class="collapse">
+  <li><a href="#importing-packages" id="toc-importing-packages" class="nav-link" data-scroll-target="#importing-packages">Importing packages</a></li>
+  </ul></li>
+  <li><a href="#data-wrangling" id="toc-data-wrangling" class="nav-link" data-scroll-target="#data-wrangling">1.0 Data Wrangling</a>
+  <ul class="collapse">
+  <li><a href="#geospatial" id="toc-geospatial" class="nav-link" data-scroll-target="#geospatial">Geospatial</a></li>
+  <li><a href="#importing-data" id="toc-importing-data" class="nav-link" data-scroll-target="#importing-data">1.1 Importing data</a>
+  <ul class="collapse">
+  <li><a href="#map-data" id="toc-map-data" class="nav-link" data-scroll-target="#map-data">Map data</a></li>
+  <li><a href="#road-data" id="toc-road-data" class="nav-link" data-scroll-target="#road-data">Road data</a></li>
+  <li><a href="#importing-grab-posisi-1" id="toc-importing-grab-posisi-1" class="nav-link" data-scroll-target="#importing-grab-posisi-1">Importing Grab posisi 1</a></li>
+  </ul></li>
+  <li><a href="#add-grab-data-together-concat-the-data-together" id="toc-add-grab-data-together-concat-the-data-together" class="nav-link" data-scroll-target="#add-grab-data-together-concat-the-data-together">Add grab data together Concat the data together</a></li>
+  <li><a href="#pre-processing" id="toc-pre-processing" class="nav-link" data-scroll-target="#pre-processing">1.2 Pre-processing</a>
+  <ul class="collapse">
+  <li><a href="#sources---megans-journey---to-check-if-geometries-are-valid" id="toc-sources---megans-journey---to-check-if-geometries-are-valid" class="nav-link" data-scroll-target="#sources---megans-journey---to-check-if-geometries-are-valid">Sources - Megan’s journey - to check if geometries are valid</a></li>
+  </ul></li>
+  <li><a href="#checking-coordinate-system" id="toc-checking-coordinate-system" class="nav-link" data-scroll-target="#checking-coordinate-system">1.3 Checking Coordinate system</a>
+  <ul class="collapse">
+  <li><a href="#checking-mpsz" id="toc-checking-mpsz" class="nav-link" data-scroll-target="#checking-mpsz">Checking MPSZ</a></li>
+  <li><a href="#checking-roads" id="toc-checking-roads" class="nav-link" data-scroll-target="#checking-roads">Checking Roads</a></li>
+  <li><a href="#making-roads-data-into-projected-svy21" id="toc-making-roads-data-into-projected-svy21" class="nav-link" data-scroll-target="#making-roads-data-into-projected-svy21">Making roads data into projected SVY21</a></li>
+  </ul></li>
+  <li><a href="#removing-of-outer-islands" id="toc-removing-of-outer-islands" class="nav-link" data-scroll-target="#removing-of-outer-islands">1.4 Removing of outer islands</a></li>
+  <li><a href="#getting-polygons-inside-big-island" id="toc-getting-polygons-inside-big-island" class="nav-link" data-scroll-target="#getting-polygons-inside-big-island">1.5 Getting polygons inside big island</a></li>
+  </ul></li>
+  <li><a href="#aspatial-wrangling" id="toc-aspatial-wrangling" class="nav-link" data-scroll-target="#aspatial-wrangling">2.0 Aspatial Wrangling</a>
+  <ul class="collapse">
+  <li><a href="#changing-timestamp-to-correct-one" id="toc-changing-timestamp-to-correct-one" class="nav-link" data-scroll-target="#changing-timestamp-to-correct-one">2.1 Changing timestamp to correct one</a></li>
+  <li><a href="#plot-map-and-roads-to-check" id="toc-plot-map-and-roads-to-check" class="nav-link" data-scroll-target="#plot-map-and-roads-to-check">2.2 plot map and roads to check</a></li>
+  <li><a href="#check-class-of-grab-data" id="toc-check-class-of-grab-data" class="nav-link" data-scroll-target="#check-class-of-grab-data">Check class of grab data</a></li>
+  <li><a href="#converting-aspatial-object-to-geospatial" id="toc-converting-aspatial-object-to-geospatial" class="nav-link" data-scroll-target="#converting-aspatial-object-to-geospatial">2.3 Converting Aspatial object to geospatial</a></li>
+  <li><a href="#we-can-plot-the-points-on-the-map-to-see-how-it-looks" id="toc-we-can-plot-the-points-on-the-map-to-see-how-it-looks" class="nav-link" data-scroll-target="#we-can-plot-the-points-on-the-map-to-see-how-it-looks">We can plot the points on the map to see how it looks</a></li>
+  <li><a href="#converting-grab-posisi-into-raster-ppp-format" id="toc-converting-grab-posisi-into-raster-ppp-format" class="nav-link" data-scroll-target="#converting-grab-posisi-into-raster-ppp-format">2.4 Converting grab posisi into raster ppp format</a>
+  <ul class="collapse">
+  <li><a href="#lab-way-of-converting-aspatial-to-project-on-map" id="toc-lab-way-of-converting-aspatial-to-project-on-map" class="nav-link" data-scroll-target="#lab-way-of-converting-aspatial-to-project-on-map">lab way of converting aspatial to project on map</a></li>
+  </ul></li>
+  <li><a href="#plotting-ppp-to-see-how-it-looks-like" id="toc-plotting-ppp-to-see-how-it-looks-like" class="nav-link" data-scroll-target="#plotting-ppp-to-see-how-it-looks-like">plotting ppp to see how it looks like</a></li>
+  <li><a href="#check-if-lat-long-makes-sense---conversion-is-correct" id="toc-check-if-lat-long-makes-sense---conversion-is-correct" class="nav-link" data-scroll-target="#check-if-lat-long-makes-sense---conversion-is-correct">Check if lat long makes sense -&gt; conversion is correct</a>
+  <ul class="collapse">
+  <li><a href="#tm-plot-with-spatial-points-map" id="toc-tm-plot-with-spatial-points-map" class="nav-link" data-scroll-target="#tm-plot-with-spatial-points-map">Tm plot with spatial points + map</a></li>
+  </ul></li>
+  <li><a href="#handling-duplicated-points" id="toc-handling-duplicated-points" class="nav-link" data-scroll-target="#handling-duplicated-points">2.5Handling Duplicated Points</a>
+  <ul class="collapse">
+  <li><a href="#jittering-duplicates-away" id="toc-jittering-duplicates-away" class="nav-link" data-scroll-target="#jittering-duplicates-away">Jittering duplicates away</a></li>
+  <li><a href="#checking-duplicates-after-jitter" id="toc-checking-duplicates-after-jitter" class="nav-link" data-scroll-target="#checking-duplicates-after-jitter">Checking duplicates after jitter</a></li>
+  </ul></li>
+  <li><a href="#creating-owin-object" id="toc-creating-owin-object" class="nav-link" data-scroll-target="#creating-owin-object">Creating owin object</a></li>
+  <li><a href="#converting-mpsz3414-to-sp-spatial-class-before-converting-to-owin-object" id="toc-converting-mpsz3414-to-sp-spatial-class-before-converting-to-owin-object" class="nav-link" data-scroll-target="#converting-mpsz3414-to-sp-spatial-class-before-converting-to-owin-object">Converting mpsz3414 to SP spatial class before converting to owin object</a></li>
+  <li><a href="#plotting-sg-owin" id="toc-plotting-sg-owin" class="nav-link" data-scroll-target="#plotting-sg-owin">Plotting sg owin</a></li>
+  <li><a href="#combine-point-object-grab-with-sg-owin" id="toc-combine-point-object-grab-with-sg-owin" class="nav-link" data-scroll-target="#combine-point-object-grab-with-sg-owin">Combine point object (grab) with sg owin</a></li>
+  </ul></li>
+  <li><a href="#kde---kernal-density-estimations" id="toc-kde---kernal-density-estimations" class="nav-link" data-scroll-target="#kde---kernal-density-estimations">3.0 KDE - Kernal Density Estimations</a>
+  <ul class="collapse">
+  <li><a href="#grab-posisi-1-dataset" id="toc-grab-posisi-1-dataset" class="nav-link" data-scroll-target="#grab-posisi-1-dataset">Grab posisi (1 dataset)</a></li>
+  <li><a href="#using-automatic-bandwidth-selection---diggle" id="toc-using-automatic-bandwidth-selection---diggle" class="nav-link" data-scroll-target="#using-automatic-bandwidth-selection---diggle">3.1 Using automatic bandwidth selection - diggle</a></li>
+  <li><a href="#rescaling-trhe-values-as-its-too-small" id="toc-rescaling-trhe-values-as-its-too-small" class="nav-link" data-scroll-target="#rescaling-trhe-values-as-its-too-small">3.1.1 Rescaling trhe values as its too small</a></li>
+  <li><a href="#other-automatic-bandwidth" id="toc-other-automatic-bandwidth" class="nav-link" data-scroll-target="#other-automatic-bandwidth">3.1.2 Other automatic bandwidth</a>
+  <ul class="collapse">
+  <li><a href="#observation" id="toc-observation" class="nav-link" data-scroll-target="#observation">3.2 Observation</a></li>
+  </ul></li>
+  <li><a href="#working-with-different-density-methods" id="toc-working-with-different-density-methods" class="nav-link" data-scroll-target="#working-with-different-density-methods">3.3 Working with different density methods</a></li>
+  <li><a href="#fixed-bandwith-method" id="toc-fixed-bandwith-method" class="nav-link" data-scroll-target="#fixed-bandwith-method">3.3.1 Fixed bandwith method</a>
+  <ul class="collapse">
+  <li><a href="#findings" id="toc-findings" class="nav-link" data-scroll-target="#findings">3.3.2 Findings</a></li>
+  </ul></li>
+  <li><a href="#comparing-regions" id="toc-comparing-regions" class="nav-link" data-scroll-target="#comparing-regions">3.4 Comparing regions</a>
+  <ul class="collapse">
+  <li><a href="#toa-payoh-and-tampines-as-its-the-most-intense-regions" id="toc-toa-payoh-and-tampines-as-its-the-most-intense-regions" class="nav-link" data-scroll-target="#toa-payoh-and-tampines-as-its-the-most-intense-regions">3.4.1 TOA PAYOH and TAMPINES as its the most intense regions</a></li>
+  <li><a href="#plotting-them-out" id="toc-plotting-them-out" class="nav-link" data-scroll-target="#plotting-them-out">3.4.2 Plotting them out</a></li>
+  <li><a href="#converting-to-spatial-polygons" id="toc-converting-to-spatial-polygons" class="nav-link" data-scroll-target="#converting-to-spatial-polygons">3.4.3 Converting to spatial polygons</a></li>
+  <li><a href="#making-them-owin" id="toc-making-them-owin" class="nav-link" data-scroll-target="#making-them-owin">3.4.4 Making them owin</a></li>
+  <li><a href="#combinining" id="toc-combinining" class="nav-link" data-scroll-target="#combinining">3.4.5 Combinining</a></li>
+  <li><a href="#rescaling" id="toc-rescaling" class="nav-link" data-scroll-target="#rescaling">3.4.6 Rescaling</a></li>
+  <li><a href="#plot" id="toc-plot" class="nav-link" data-scroll-target="#plot">3.4.6 Plot</a></li>
+  </ul></li>
+  <li><a href="#findings-1" id="toc-findings-1" class="nav-link" data-scroll-target="#findings-1">3.5 Findings</a></li>
+  <li><a href="#computing-kde-for-each-region-automatic" id="toc-computing-kde-for-each-region-automatic" class="nav-link" data-scroll-target="#computing-kde-for-each-region-automatic">3.6 Computing KDE for each region (automatic)</a></li>
+  <li><a href="#computing-using-fixed-bandwith" id="toc-computing-using-fixed-bandwith" class="nav-link" data-scroll-target="#computing-using-fixed-bandwith">3.7 Computing using fixed bandwith</a></li>
+  <li><a href="#findings-2" id="toc-findings-2" class="nav-link" data-scroll-target="#findings-2">3.8 Findings</a></li>
+  <li><a href="#checking-geom-type-for-streets" id="toc-checking-geom-type-for-streets" class="nav-link" data-scroll-target="#checking-geom-type-for-streets">4.1 Checking geom type for streets</a></li>
+  <li><a href="#checking-if-lines-are-of-linestring-geom-type" id="toc-checking-if-lines-are-of-linestring-geom-type" class="nav-link" data-scroll-target="#checking-if-lines-are-of-linestring-geom-type">4.2 Checking if lines are of linestring geom type</a></li>
+  <li><a href="#lixelizing-the-streets" id="toc-lixelizing-the-streets" class="nav-link" data-scroll-target="#lixelizing-the-streets">4.2 Lixelizing the streets</a></li>
+  <li><a href="#snapping" id="toc-snapping" class="nav-link" data-scroll-target="#snapping">4.3 Snapping</a></li>
+  <li><a href="#no-time-to-render-code-from-here-hence-commented" id="toc-no-time-to-render-code-from-here-hence-commented" class="nav-link" data-scroll-target="#no-time-to-render-code-from-here-hence-commented">No time to render code from here, hence commented!</a></li>
+  <li><a href="#calculating-densities" id="toc-calculating-densities" class="nav-link" data-scroll-target="#calculating-densities">4.4 Calculating densities</a></li>
+  <li><a href="#rescaling-1" id="toc-rescaling-1" class="nav-link" data-scroll-target="#rescaling-1">4.5 Rescaling</a></li>
+  <li><a href="#plotting" id="toc-plotting" class="nav-link" data-scroll-target="#plotting">Plotting</a></li>
+  </ul></li>
+  <li><a href="#improvements" id="toc-improvements" class="nav-link" data-scroll-target="#improvements">5 Improvements</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Take home 1</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+</header>
+
+<section id="take-home-ex-1" class="level1">
+<h1>Take home ex 1</h1>
+<section id="tasks" class="level2">
+<h2 class="anchored" data-anchor-id="tasks">Tasks</h2>
+<p>The specific tasks of this take-home exercise are as follows:</p>
+<p>Using appropriate function of sf and tidyverse, preparing the following geospatial data layer in sf tibble data.frames: Grab taxi location points either by origins or destinations. Road layer within Singapore excluding outer islands. Singapore boundary layer excluding outer islands Using the extracted data, derive traditional Kernel Density Estimation layers. Using the extracted data, derive either Network Kernel Density Estimation (NKDE) or Temporal Network Kernel Density Estimation (TNKDE) Using appropriate tmap functions, display the kernel density layers on openstreetmap of Singapore. Describe the spatial patterns revealed by the kernel density maps.</p>
+</section>
+</section>
+<section id="setup" class="level1">
+<h1>Setup</h1>
+<section id="importing-packages" class="level2">
+<h2 class="anchored" data-anchor-id="importing-packages">Importing packages</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>pacman<span class="sc">::</span><span class="fu">p_load</span>(tidyverse,sf,tmap,lubridate,arrow,spNetwork,classInt,viridis,raster,spatstat)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(maptools)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+</section>
+<section id="data-wrangling" class="level1">
+<h1>1.0 Data Wrangling</h1>
+<section id="geospatial" class="level2">
+<h2 class="anchored" data-anchor-id="geospatial">Geospatial</h2>
+</section>
+<section id="importing-data" class="level2">
+<h2 class="anchored" data-anchor-id="importing-data">1.1 Importing data</h2>
+<section id="map-data" class="level3">
+<h3 class="anchored" data-anchor-id="map-data">Map data</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>mpsz <span class="ot">&lt;-</span> <span class="fu">st_read</span>(<span class="at">dsn =</span> <span class="st">"../../Hands-on_Ex/data/geospatial"</span>, </span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>                <span class="at">layer =</span> <span class="st">"MP14_SUBZONE_WEB_PL"</span>)</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="fu">st_set_crs</span>(mpsz, <span class="dv">3414</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="road-data" class="level3">
+<h3 class="anchored" data-anchor-id="road-data">Road data</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>roads_sf<span class="ot">&lt;-</span><span class="fu">st_read</span>(<span class="at">dsn =</span> <span class="st">"data/geospatial"</span>,<span class="at">layer=</span> <span class="st">"gis_osm_roads_free_1"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="importing-grab-posisi-1" class="level3">
+<h3 class="anchored" data-anchor-id="importing-grab-posisi-1">Importing Grab posisi 1</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>grab1 <span class="ot">&lt;-</span><span class="fu">read_parquet</span>(<span class="st">"data/aspatial/GrabPosisi/part-00000-8bbff892-97d2-4011-9961-703e38972569.c000.snappy.parquet"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+</section>
+<section id="add-grab-data-together-concat-the-data-together" class="level2">
+<h2 class="anchored" data-anchor-id="add-grab-data-together-concat-the-data-together">Add grab data together Concat the data together</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co">#grab2 &lt;-read_parquet("data/aspatial/GrabPosisi/part-00001-8bbff892-97d2-4011-9961-703e38972569.c000.snappy.parquet")</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="co">#grab3 &lt;-read_parquet("data/aspatial/GrabPosisi/part-00002-8bbff892-97d2-4011-9961-703e38972569.c000.snappy.parquet")</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="co">#grab4 &lt;-read_parquet("data/aspatial/GrabPosisi/part-00003-8bbff892-97d2-4011-9961-703e38972569.c000.snappy.parquet")</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="co">#grab5 &lt;-read_parquet("data/aspatial/GrabPosisi/part-00004-8bbff892-97d2-4011-9961-703e38972569.c000.snappy.parquet")</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="co">#grab6 &lt;-read_parquet("data/aspatial/GrabPosisi/part-00005-8bbff892-97d2-4011-9961-703e38972569.c000.snappy.parquet")</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="co">#grab7 &lt;-read_parquet("data/aspatial/GrabPosisi/part-00006-8bbff892-97d2-4011-9961-703e38972569.c000.snappy.parquet")</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="co">#grab8 &lt;-read_parquet("data/aspatial/GrabPosisi/part-00007-8bbff892-97d2-4011-9961-703e38972569.c000.snappy.parquet")</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="co">#grab9 &lt;-read_parquet("data/aspatial/GrabPosisi/part-00008-8bbff892-97d2-4011-9961-703e38972569.c000.snappy.parquet")</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="co">#grab10 &lt;-read_parquet("data/aspatial/GrabPosisi/part-00009-8bbff892-97d2-4011-9961-703e38972569.c000.snappy.parquet")</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="co">#grab_combined_df &lt;- bind_rows(grab1,grab2,grab3,grab4,grab5,grab6,grab7,grab8,grab9,grab10)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="pre-processing" class="level2">
+<h2 class="anchored" data-anchor-id="pre-processing">1.2 Pre-processing</h2>
+<section id="sources---megans-journey---to-check-if-geometries-are-valid" class="level3">
+<h3 class="anchored" data-anchor-id="sources---megans-journey---to-check-if-geometries-are-valid">Sources - Megan’s journey - to check if geometries are valid</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">length</span>(<span class="fu">which</span>(<span class="fu">st_is_valid</span>(roads_sf) <span class="sc">==</span> <span class="cn">FALSE</span>))</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="fu">length</span>(<span class="fu">which</span>(<span class="fu">st_is_valid</span>(mpsz) <span class="sc">==</span> <span class="cn">FALSE</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>mpsz <span class="ot">&lt;-</span> <span class="fu">st_make_valid</span>(mpsz)</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="fu">length</span>(<span class="fu">which</span>(<span class="fu">st_is_valid</span>(mpsz) <span class="sc">==</span> <span class="cn">FALSE</span>))</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="do">## source: https://r-spatial.github.io/sf/reference/valid.html - make_valid</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+</section>
+<section id="checking-coordinate-system" class="level2">
+<h2 class="anchored" data-anchor-id="checking-coordinate-system">1.3 Checking Coordinate system</h2>
+<section id="checking-mpsz" class="level3">
+<h3 class="anchored" data-anchor-id="checking-mpsz">Checking MPSZ</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">st_crs</span>(mpsz)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="checking-roads" class="level3">
+<h3 class="anchored" data-anchor-id="checking-roads">Checking Roads</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">st_crs</span>(roads_sf)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="making-roads-data-into-projected-svy21" class="level3">
+<h3 class="anchored" data-anchor-id="making-roads-data-into-projected-svy21">Making roads data into projected SVY21</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>roads3414 <span class="ot">&lt;-</span> <span class="fu">st_transform</span>(roads_sf, </span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>                              <span class="at">crs =</span> <span class="dv">3414</span>)</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="fu">st_crs</span>(roads3414)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+</section>
+<section id="removing-of-outer-islands" class="level2">
+<h2 class="anchored" data-anchor-id="removing-of-outer-islands">1.4 Removing of outer islands</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>sg_sf <span class="ot">&lt;-</span> <span class="fu">st_union</span>(mpsz,<span class="at">by_feature =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(sg_sf, <span class="at">col =</span> <span class="st">"lightblue"</span>, <span class="at">main =</span> <span class="st">"Sea Area"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Big island</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="do">##source - https://stackoverflow.com/questions/42512431/how-to-separate-a-multipolygon-geometry-into-several-polygons-objects-after-perf</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>ind_poly <span class="ot">&lt;-</span> <span class="fu">st_cast</span>(sg_sf, <span class="st">"POLYGON"</span>)</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>areas <span class="ot">&lt;-</span> <span class="fu">st_area</span>(ind_poly)</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>largest_index <span class="ot">&lt;-</span> <span class="fu">which.max</span>(areas)</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>largest_polygon <span class="ot">&lt;-</span> ind_poly[largest_index]</span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(largest_polygon)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Check crs of largest / convert to SVY</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>mpsz3414 <span class="ot">&lt;-</span> <span class="fu">st_transform</span>(largest_polygon, </span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>                              <span class="at">crs =</span> <span class="dv">3414</span>)</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="fu">st_crs</span>(mpsz3414)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="getting-polygons-inside-big-island" class="level2">
+<h2 class="anchored" data-anchor-id="getting-polygons-inside-big-island">1.5 Getting polygons inside big island</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>mpsz3414</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>mpsz</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>mpsz3414</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>mpsz</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>islandPoly <span class="ot">&lt;-</span> <span class="fu">st_intersection</span>(<span class="fu">st_set_crs</span>(mpsz, <span class="dv">3414</span>),<span class="fu">st_set_crs</span>(mpsz3414, <span class="dv">3414</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(islandPoly)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+</section>
+<section id="aspatial-wrangling" class="level1">
+<h1>2.0 Aspatial Wrangling</h1>
+<section id="changing-timestamp-to-correct-one" class="level2">
+<h2 class="anchored" data-anchor-id="changing-timestamp-to-correct-one">2.1 Changing timestamp to correct one</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>grab1<span class="sc">$</span>pingtimestamp <span class="ot">&lt;-</span> <span class="fu">as_datetime</span>(grab1<span class="sc">$</span>pingtimestamp)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+DIY
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Write a code chunk to - Extract trip origin location - derice three new column, weekday, starting hour and day of the month - name the output tibble data.frame origin_df</p>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>origin_df <span class="ot">&lt;-</span>grab1 <span class="sc">%&gt;%</span> </span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(trj_id)<span class="sc">%&gt;%</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(pingtimestamp) <span class="sc">%&gt;%</span></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">row_number</span>()<span class="sc">==</span><span class="dv">1</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">weekday =</span> <span class="fu">wday</span>(pingtimestamp,</span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>                        <span class="at">label=</span><span class="cn">TRUE</span>,</span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>                        <span class="at">abbr =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>         <span class="at">start_hr =</span> <span class="fu">factor</span>(<span class="fu">hour</span>(pingtimestamp)),</span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>         <span class="at">day =</span> <span class="fu">factor</span>(<span class="fu">mday</span>(pingtimestamp)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Perform a spatial join to filter roads within Singapore</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="co">#roadI &lt;- roads3414[10]</span></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a><span class="co">#roads_in_singapore &lt;- st_intersection(roadI, mpsz3414)</span></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot the roads within Singapore</span></span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a><span class="co">#plot(roads_in_singapore)</span></span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Simplify geometry of road data (adjust tolerance as needed)</span></span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>road_data <span class="ot">&lt;-</span> <span class="fu">st_simplify</span>(roads3414, <span class="at">preserveTopology =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Perform spatial intersection after simplification</span></span>
+<span id="cb19-12"><a href="#cb19-12" aria-hidden="true" tabindex="-1"></a>roads_in_singapore <span class="ot">&lt;-</span> <span class="fu">st_intersection</span>(road_data, mpsz3414)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="plot-map-and-roads-to-check" class="level2">
+<h2 class="anchored" data-anchor-id="plot-map-and-roads-to-check">2.2 plot map and roads to check</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tm_shape</span>(roads_in_singapore<span class="sc">$</span>geometry)<span class="sc">+</span><span class="fu">tm_lines</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="check-class-of-grab-data" class="level2">
+<h2 class="anchored" data-anchor-id="check-class-of-grab-data">Check class of grab data</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="fu">class</span>(origin_df)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="converting-aspatial-object-to-geospatial" class="level2">
+<h2 class="anchored" data-anchor-id="converting-aspatial-object-to-geospatial">2.3 Converting Aspatial object to geospatial</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Convert tibble to sf object</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>sf_object <span class="ot">&lt;-</span> <span class="fu">st_as_sf</span>(origin_df, <span class="at">coords =</span> <span class="fu">c</span>(<span class="st">"rawlng"</span>, <span class="st">"rawlat"</span>), <span class="at">crs =</span> <span class="dv">4326</span>) <span class="sc">%&gt;%</span> <span class="fu">st_transform</span>(<span class="at">crs =</span> <span class="dv">3414</span>)</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a><span class="co">#sf_object2 &lt;- st_as_sf(grab_combined_df, coords = c("rawlng", "rawlat"), crs = 4326) %&gt;% st_transform(crs = 3414)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="we-can-plot-the-points-on-the-map-to-see-how-it-looks" class="level2">
+<h2 class="anchored" data-anchor-id="we-can-plot-the-points-on-the-map-to-see-how-it-looks">We can plot the points on the map to see how it looks</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>lines <span class="ot">&lt;-</span> <span class="fu">st_cast</span>(roads_in_singapore<span class="sc">$</span>geometry, <span class="st">"MULTILINESTRING"</span>)</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>lines <span class="ot">&lt;-</span> <span class="fu">st_cast</span>(lines, <span class="st">"LINESTRING"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="fu">st_crs</span>(sf_object)</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a><span class="fu">st_crs</span>(lines)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tm_shape</span>(lines)<span class="sc">+</span><span class="fu">tm_lines</span>()<span class="sc">+</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_shape</span>(sf_object)<span class="sc">+</span><span class="fu">tm_dots</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_shape</span>(mpsz3414)<span class="sc">+</span><span class="fu">tm_polygons</span>()<span class="sc">+</span><span class="fu">tm_shape</span>(sf_object)<span class="sc">+</span><span class="fu">tm_dots</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="converting-grab-posisi-into-raster-ppp-format" class="level2">
+<h2 class="anchored" data-anchor-id="converting-grab-posisi-into-raster-ppp-format">2.4 Converting grab posisi into raster ppp format</h2>
+<section id="lab-way-of-converting-aspatial-to-project-on-map" class="level3">
+<h3 class="anchored" data-anchor-id="lab-way-of-converting-aspatial-to-project-on-map">lab way of converting aspatial to project on map</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>origin_df2 <span class="ot">&lt;-</span> <span class="fu">as_Spatial</span>(sf_object)</span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>object_sp <span class="ot">&lt;-</span> <span class="fu">as</span>(origin_df2, <span class="st">"SpatialPoints"</span>)</span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>object_sp</span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>object_ppp <span class="ot">&lt;-</span> <span class="fu">as</span>(object_sp, <span class="st">"ppp"</span>)</span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>object_ppp</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+</section>
+<section id="plotting-ppp-to-see-how-it-looks-like" class="level2">
+<h2 class="anchored" data-anchor-id="plotting-ppp-to-see-how-it-looks-like">plotting ppp to see how it looks like</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(object_ppp)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="check-if-lat-long-makes-sense---conversion-is-correct" class="level2">
+<h2 class="anchored" data-anchor-id="check-if-lat-long-makes-sense---conversion-is-correct">Check if lat long makes sense -&gt; conversion is correct</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>object_ppp</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<section id="tm-plot-with-spatial-points-map" class="level3">
+<h3 class="anchored" data-anchor-id="tm-plot-with-spatial-points-map">Tm plot with spatial points + map</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tmap_mode</span>(<span class="st">'view'</span>)</span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_shape</span>(mpsz3414)<span class="sc">+</span><span class="fu">tm_polygons</span>()<span class="sc">+</span><span class="fu">tm_shape</span>(object_sp)<span class="sc">+</span><span class="fu">tm_dots</span>()</span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a><span class="fu">tmap_mode</span>(<span class="st">'plot'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+</section>
+<section id="handling-duplicated-points" class="level2">
+<h2 class="anchored" data-anchor-id="handling-duplicated-points">2.5Handling Duplicated Points</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="fu">any</span>(<span class="fu">duplicated</span>(object_ppp))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<section id="jittering-duplicates-away" class="level3">
+<h3 class="anchored" data-anchor-id="jittering-duplicates-away">Jittering duplicates away</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>object_ppp_jit <span class="ot">&lt;-</span> <span class="fu">rjitter</span>(object_ppp, </span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>                             <span class="at">retry=</span><span class="cn">TRUE</span>, </span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>                             <span class="at">nsim=</span><span class="dv">1</span>, </span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a>                             <span class="at">drop=</span><span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="checking-duplicates-after-jitter" class="level3">
+<h3 class="anchored" data-anchor-id="checking-duplicates-after-jitter">Checking duplicates after jitter</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="fu">any</span>(<span class="fu">duplicated</span>(object_ppp))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+</section>
+<section id="creating-owin-object" class="level2">
+<h2 class="anchored" data-anchor-id="creating-owin-object">Creating owin object</h2>
+</section>
+<section id="converting-mpsz3414-to-sp-spatial-class-before-converting-to-owin-object" class="level2">
+<h2 class="anchored" data-anchor-id="converting-mpsz3414-to-sp-spatial-class-before-converting-to-owin-object">Converting mpsz3414 to SP spatial class before converting to owin object</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>mpsz3414</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>sg_sp <span class="ot">&lt;-</span> <span class="fu">as_Spatial</span>(mpsz3414)</span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a>sg_sp <span class="ot">&lt;-</span> <span class="fu">as</span>(sg_sp, <span class="st">"SpatialPolygons"</span>)</span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a>sg_sp</span>
+<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a>object_ppp</span>
+<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a>sg_owin2 <span class="ot">&lt;-</span> <span class="fu">as</span>(sg_sp, <span class="st">"owin"</span>)</span>
+<span id="cb35-6"><a href="#cb35-6" aria-hidden="true" tabindex="-1"></a>sg_owin2</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="plotting-sg-owin" class="level2">
+<h2 class="anchored" data-anchor-id="plotting-sg-owin">Plotting sg owin</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(sg_owin2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="combine-point-object-grab-with-sg-owin" class="level2">
+<h2 class="anchored" data-anchor-id="combine-point-object-grab-with-sg-owin">Combine point object (grab) with sg owin</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a>grabSg_ppp <span class="ot">=</span> object_ppp[sg_owin2]</span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(grabSg_ppp)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+</section>
+<section id="kde---kernal-density-estimations" class="level1">
+<h1>3.0 KDE - Kernal Density Estimations</h1>
+<section id="grab-posisi-1-dataset" class="level3">
+<h3 class="anchored" data-anchor-id="grab-posisi-1-dataset">Grab posisi (1 dataset)</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tmap_mode</span>(<span class="st">'view'</span>)</span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a><span class="fu">tm_shape</span>(object_sp) <span class="sc">+</span></span>
+<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_dots</span>(<span class="at">alpha=</span><span class="fl">0.4</span>, </span>
+<span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a>          <span class="at">size=</span><span class="fl">0.05</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="using-automatic-bandwidth-selection---diggle" class="level2">
+<h2 class="anchored" data-anchor-id="using-automatic-bandwidth-selection---diggle">3.1 Using automatic bandwidth selection - diggle</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a>kde_grab_sg <span class="ot">&lt;-</span> <span class="fu">density</span>(grabSg_ppp,</span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a>                              <span class="at">sigma=</span>bw.diggle,</span>
+<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a>                              <span class="at">edge=</span><span class="cn">TRUE</span>,</span>
+<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a>                            <span class="at">kernel=</span><span class="st">"gaussian"</span>) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb40"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(kde_grab_sg)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="rescaling-trhe-values-as-its-too-small" class="level2">
+<h2 class="anchored" data-anchor-id="rescaling-trhe-values-as-its-too-small">3.1.1 Rescaling trhe values as its too small</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb41"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a>grabSg_ppp.km <span class="ot">&lt;-</span> <span class="fu">rescale</span>(grabSg_ppp, <span class="dv">1000</span>, <span class="st">"km"</span>)</span>
+<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a>kde_grab_sg <span class="ot">&lt;-</span> <span class="fu">density</span>(grabSg_ppp.km, <span class="at">sigma=</span>bw.diggle, <span class="at">edge=</span><span class="cn">TRUE</span>, <span class="at">kernel=</span><span class="st">"gaussian"</span>)</span>
+<span id="cb41-3"><a href="#cb41-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(kde_grab_sg)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="other-automatic-bandwidth" class="level2">
+<h2 class="anchored" data-anchor-id="other-automatic-bandwidth">3.1.2 Other automatic bandwidth</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb42"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a> <span class="fu">bw.CvL</span>(grabSg_ppp.km)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb43"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a>grabSg_ppp.ppl <span class="ot">&lt;-</span> <span class="fu">density</span>(grabSg_ppp.km, </span>
+<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a>                               <span class="at">sigma=</span>bw.ppl, </span>
+<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a>                               <span class="at">edge=</span><span class="cn">TRUE</span>,</span>
+<span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a>                               <span class="at">kernel=</span><span class="st">"gaussian"</span>)</span>
+<span id="cb43-5"><a href="#cb43-5" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>))</span>
+<span id="cb43-6"><a href="#cb43-6" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(kde_grab_sg, <span class="at">main =</span> <span class="st">"bw.diggle"</span>)</span>
+<span id="cb43-7"><a href="#cb43-7" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(grabSg_ppp.ppl, <span class="at">main =</span> <span class="st">"bw.ppl"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<section id="observation" class="level3">
+<h3 class="anchored" data-anchor-id="observation">3.2 Observation</h3>
+<p>.ppl is better in showing different clusters on the map. Bw not so good, only showing those with very high intensity</p>
+</section>
+</section>
+<section id="working-with-different-density-methods" class="level2">
+<h2 class="anchored" data-anchor-id="working-with-different-density-methods">3.3 Working with different density methods</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb44"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">2</span>,<span class="dv">2</span>))</span>
+<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="fu">density</span>(grabSg_ppp.km, </span>
+<span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a>             <span class="at">sigma=</span>bw.ppl, </span>
+<span id="cb44-4"><a href="#cb44-4" aria-hidden="true" tabindex="-1"></a>             <span class="at">edge=</span><span class="cn">TRUE</span>, </span>
+<span id="cb44-5"><a href="#cb44-5" aria-hidden="true" tabindex="-1"></a>             <span class="at">kernel=</span><span class="st">"gaussian"</span>), </span>
+<span id="cb44-6"><a href="#cb44-6" aria-hidden="true" tabindex="-1"></a>     <span class="at">main=</span><span class="st">"Gaussian"</span>)</span>
+<span id="cb44-7"><a href="#cb44-7" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="fu">density</span>(grabSg_ppp.km, </span>
+<span id="cb44-8"><a href="#cb44-8" aria-hidden="true" tabindex="-1"></a>             <span class="at">sigma=</span>bw.ppl, </span>
+<span id="cb44-9"><a href="#cb44-9" aria-hidden="true" tabindex="-1"></a>             <span class="at">edge=</span><span class="cn">TRUE</span>, </span>
+<span id="cb44-10"><a href="#cb44-10" aria-hidden="true" tabindex="-1"></a>             <span class="at">kernel=</span><span class="st">"epanechnikov"</span>), </span>
+<span id="cb44-11"><a href="#cb44-11" aria-hidden="true" tabindex="-1"></a>     <span class="at">main=</span><span class="st">"Epanechnikov"</span>)</span>
+<span id="cb44-12"><a href="#cb44-12" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="fu">density</span>(grabSg_ppp.km, </span>
+<span id="cb44-13"><a href="#cb44-13" aria-hidden="true" tabindex="-1"></a>             <span class="at">sigma=</span>bw.ppl, </span>
+<span id="cb44-14"><a href="#cb44-14" aria-hidden="true" tabindex="-1"></a>             <span class="at">edge=</span><span class="cn">TRUE</span>, </span>
+<span id="cb44-15"><a href="#cb44-15" aria-hidden="true" tabindex="-1"></a>             <span class="at">kernel=</span><span class="st">"quartic"</span>), </span>
+<span id="cb44-16"><a href="#cb44-16" aria-hidden="true" tabindex="-1"></a>     <span class="at">main=</span><span class="st">"Quartic"</span>)</span>
+<span id="cb44-17"><a href="#cb44-17" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="fu">density</span>(grabSg_ppp.km, </span>
+<span id="cb44-18"><a href="#cb44-18" aria-hidden="true" tabindex="-1"></a>             <span class="at">sigma=</span>bw.ppl, </span>
+<span id="cb44-19"><a href="#cb44-19" aria-hidden="true" tabindex="-1"></a>             <span class="at">edge=</span><span class="cn">TRUE</span>, </span>
+<span id="cb44-20"><a href="#cb44-20" aria-hidden="true" tabindex="-1"></a>             <span class="at">kernel=</span><span class="st">"disc"</span>), </span>
+<span id="cb44-21"><a href="#cb44-21" aria-hidden="true" tabindex="-1"></a>     <span class="at">main=</span><span class="st">"Disc"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="fixed-bandwith-method" class="level2">
+<h2 class="anchored" data-anchor-id="fixed-bandwith-method">3.3.1 Fixed bandwith method</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb45"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a>kde_grabSg_800 <span class="ot">&lt;-</span> <span class="fu">density</span>(grabSg_ppp.km, <span class="at">sigma=</span><span class="fl">0.8</span>, <span class="at">edge=</span><span class="cn">TRUE</span>, <span class="at">kernel=</span><span class="st">"gaussian"</span>)</span>
+<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(kde_grabSg_800)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<section id="findings" class="level3">
+<h3 class="anchored" data-anchor-id="findings">3.3.2 Findings</h3>
+<p>Using the fixed bandwith, it it easier to see / adjust the headmap to see which areas in singapore are more intense</p>
+</section>
+</section>
+<section id="comparing-regions" class="level2">
+<h2 class="anchored" data-anchor-id="comparing-regions">3.4 Comparing regions</h2>
+<section id="toa-payoh-and-tampines-as-its-the-most-intense-regions" class="level3">
+<h3 class="anchored" data-anchor-id="toa-payoh-and-tampines-as-its-the-most-intense-regions">3.4.1 TOA PAYOH and TAMPINES as its the most intense regions</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb46"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a>mpsz2 <span class="ot">&lt;-</span> <span class="fu">as_Spatial</span>(mpsz)</span>
+<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a>tp <span class="ot">=</span> mpsz2[mpsz2<span class="sc">@</span>data<span class="sc">$</span>PLN_AREA_N <span class="sc">==</span> <span class="st">"TOA PAYOH"</span>,]</span>
+<span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a>tm <span class="ot">=</span> mpsz2[mpsz2<span class="sc">@</span>data<span class="sc">$</span>PLN_AREA_N <span class="sc">==</span> <span class="st">"TAMPINES"</span>,]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="plotting-them-out" class="level3">
+<h3 class="anchored" data-anchor-id="plotting-them-out">3.4.2 Plotting them out</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb47"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">2</span>,<span class="dv">2</span>))</span>
+<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(tp, <span class="at">main =</span> <span class="st">"Toa payoh"</span>)</span>
+<span id="cb47-3"><a href="#cb47-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(tm, <span class="at">main =</span> <span class="st">"Tampines"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="converting-to-spatial-polygons" class="level3">
+<h3 class="anchored" data-anchor-id="converting-to-spatial-polygons">3.4.3 Converting to spatial polygons</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb48"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a>tm_sp <span class="ot">=</span> <span class="fu">as</span>(tm, <span class="st">"SpatialPolygons"</span>)</span>
+<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a>tp_sp <span class="ot">=</span> <span class="fu">as</span>(tp, <span class="st">"SpatialPolygons"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="making-them-owin" class="level3">
+<h3 class="anchored" data-anchor-id="making-them-owin">3.4.4 Making them owin</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb49"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a>tp_owin <span class="ot">=</span> <span class="fu">as</span>(tp_sp, <span class="st">"owin"</span>)</span>
+<span id="cb49-2"><a href="#cb49-2" aria-hidden="true" tabindex="-1"></a>tm_owin <span class="ot">=</span> <span class="fu">as</span>(tm_sp, <span class="st">"owin"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="combinining" class="level3">
+<h3 class="anchored" data-anchor-id="combinining">3.4.5 Combinining</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb50"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a>grab_tp_ppp <span class="ot">=</span> object_ppp_jit[tp_owin]</span>
+<span id="cb50-2"><a href="#cb50-2" aria-hidden="true" tabindex="-1"></a>grab_tm_ppp <span class="ot">=</span> object_ppp_jit[tm_owin]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="rescaling" class="level3">
+<h3 class="anchored" data-anchor-id="rescaling">3.4.6 Rescaling</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb51"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a>grab_tp_ppp.km <span class="ot">=</span> <span class="fu">rescale</span>(grab_tp_ppp, <span class="dv">1000</span>, <span class="st">"km"</span>)</span>
+<span id="cb51-2"><a href="#cb51-2" aria-hidden="true" tabindex="-1"></a>grab_tm_ppp.km <span class="ot">=</span> <span class="fu">rescale</span>(grab_tm_ppp, <span class="dv">1000</span>, <span class="st">"km"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="plot" class="level3">
+<h3 class="anchored" data-anchor-id="plot">3.4.6 Plot</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb52"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">2</span>,<span class="dv">2</span>))</span>
+<span id="cb52-2"><a href="#cb52-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(grab_tp_ppp.km, <span class="at">main=</span><span class="st">"Toa Payoh"</span>)</span>
+<span id="cb52-3"><a href="#cb52-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(grab_tm_ppp.km, <span class="at">main=</span><span class="st">"Tampines"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+</section>
+<section id="findings-1" class="level2">
+<h2 class="anchored" data-anchor-id="findings-1">3.5 Findings</h2>
+<p>toh payoh intensity looks spread out whereas tampines one looks very clustered</p>
+</section>
+<section id="computing-kde-for-each-region-automatic" class="level2">
+<h2 class="anchored" data-anchor-id="computing-kde-for-each-region-automatic">3.6 Computing KDE for each region (automatic)</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb53"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">2</span>,<span class="dv">2</span>))</span>
+<span id="cb53-2"><a href="#cb53-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="fu">density</span>(grab_tp_ppp.km, </span>
+<span id="cb53-3"><a href="#cb53-3" aria-hidden="true" tabindex="-1"></a>             <span class="at">sigma=</span>bw.diggle, </span>
+<span id="cb53-4"><a href="#cb53-4" aria-hidden="true" tabindex="-1"></a>             <span class="at">edge=</span><span class="cn">TRUE</span>, </span>
+<span id="cb53-5"><a href="#cb53-5" aria-hidden="true" tabindex="-1"></a>             <span class="at">kernel=</span><span class="st">"gaussian"</span>),</span>
+<span id="cb53-6"><a href="#cb53-6" aria-hidden="true" tabindex="-1"></a>     <span class="at">main=</span><span class="st">"Toa Payoh"</span>)</span>
+<span id="cb53-7"><a href="#cb53-7" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="fu">density</span>(grab_tm_ppp.km, </span>
+<span id="cb53-8"><a href="#cb53-8" aria-hidden="true" tabindex="-1"></a>             <span class="at">sigma=</span>bw.diggle, </span>
+<span id="cb53-9"><a href="#cb53-9" aria-hidden="true" tabindex="-1"></a>             <span class="at">edge=</span><span class="cn">TRUE</span>, </span>
+<span id="cb53-10"><a href="#cb53-10" aria-hidden="true" tabindex="-1"></a>             <span class="at">kernel=</span><span class="st">"gaussian"</span>),</span>
+<span id="cb53-11"><a href="#cb53-11" aria-hidden="true" tabindex="-1"></a>     <span class="at">main=</span><span class="st">"Tampines"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="computing-using-fixed-bandwith" class="level2">
+<h2 class="anchored" data-anchor-id="computing-using-fixed-bandwith">3.7 Computing using fixed bandwith</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb54"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">2</span>,<span class="dv">2</span>))</span>
+<span id="cb54-2"><a href="#cb54-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="fu">density</span>(grab_tp_ppp.km, </span>
+<span id="cb54-3"><a href="#cb54-3" aria-hidden="true" tabindex="-1"></a>             <span class="at">sigma=</span><span class="fl">0.25</span>, </span>
+<span id="cb54-4"><a href="#cb54-4" aria-hidden="true" tabindex="-1"></a>             <span class="at">edge=</span><span class="cn">TRUE</span>, </span>
+<span id="cb54-5"><a href="#cb54-5" aria-hidden="true" tabindex="-1"></a>             <span class="at">kernel=</span><span class="st">"gaussian"</span>),</span>
+<span id="cb54-6"><a href="#cb54-6" aria-hidden="true" tabindex="-1"></a>     <span class="at">main=</span><span class="st">"Toa Payoh"</span>)</span>
+<span id="cb54-7"><a href="#cb54-7" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="fu">density</span>(grab_tm_ppp.km, </span>
+<span id="cb54-8"><a href="#cb54-8" aria-hidden="true" tabindex="-1"></a>             <span class="at">sigma=</span><span class="fl">0.25</span>, </span>
+<span id="cb54-9"><a href="#cb54-9" aria-hidden="true" tabindex="-1"></a>             <span class="at">edge=</span><span class="cn">TRUE</span>, </span>
+<span id="cb54-10"><a href="#cb54-10" aria-hidden="true" tabindex="-1"></a>             <span class="at">kernel=</span><span class="st">"gaussian"</span>),</span>
+<span id="cb54-11"><a href="#cb54-11" aria-hidden="true" tabindex="-1"></a>     <span class="at">main=</span><span class="st">"Tampines"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="findings-2" class="level2">
+<h2 class="anchored" data-anchor-id="findings-2">3.8 Findings</h2>
+<p>Again, fixed method is better in identifying patterns</p>
+<p>#4 NKDE</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb55"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_shape</span>(roads_in_singapore)<span class="sc">+</span><span class="fu">tm_lines</span>()<span class="sc">+</span><span class="fu">tm_shape</span>(object_sp)<span class="sc">+</span><span class="fu">tm_dots</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="checking-geom-type-for-streets" class="level2">
+<h2 class="anchored" data-anchor-id="checking-geom-type-for-streets">4.1 Checking geom type for streets</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb56"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a><span class="co">#st_geometry_type(lines)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="checking-if-lines-are-of-linestring-geom-type" class="level2">
+<h2 class="anchored" data-anchor-id="checking-if-lines-are-of-linestring-geom-type">4.2 Checking if lines are of linestring geom type</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb57"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true" tabindex="-1"></a><span class="co">#all_linestring &lt;- all(st_geometry_type(lines) == "LINESTRING")</span></span>
+<span id="cb57-2"><a href="#cb57-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb57-3"><a href="#cb57-3" aria-hidden="true" tabindex="-1"></a><span class="co">#print(all_linestring)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="lixelizing-the-streets" class="level2">
+<h2 class="anchored" data-anchor-id="lixelizing-the-streets">4.2 Lixelizing the streets</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb58"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a><span class="co">#lines_sf &lt;- st_as_sf(lines)</span></span>
+<span id="cb58-2"><a href="#cb58-2" aria-hidden="true" tabindex="-1"></a><span class="co">#lixels &lt;- lixelize_lines(lines_sf,750,mindist=375)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="snapping" class="level2">
+<h2 class="anchored" data-anchor-id="snapping">4.3 Snapping</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb59"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb59-1"><a href="#cb59-1" aria-hidden="true" tabindex="-1"></a><span class="co">#samples &lt;-lines_center(lixels)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="no-time-to-render-code-from-here-hence-commented" class="level2">
+<h2 class="anchored" data-anchor-id="no-time-to-render-code-from-here-hence-commented">No time to render code from here, hence commented!</h2>
+</section>
+<section id="calculating-densities" class="level2">
+<h2 class="anchored" data-anchor-id="calculating-densities">4.4 Calculating densities</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb60"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a><span class="co">#densities&lt;-nkde(network,events=sf_object[1:100,],w=rep(1,nrow(sf_object)),samples=samples,</span></span>
+<span id="cb60-2"><a href="#cb60-2" aria-hidden="true" tabindex="-1"></a><span class="co">#                kernel_name = "quartic",bw=300,div="bw",method="simple",digits=1,tol=1,grid_shape = #c(1,1),max_depth=8,agg=5 ##agg events within 5m radius (faster calculation)</span></span>
+<span id="cb60-3"><a href="#cb60-3" aria-hidden="true" tabindex="-1"></a><span class="co">#                ,sparse=TRUE,verbose=FALSE)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="rescaling-1" class="level2">
+<h2 class="anchored" data-anchor-id="rescaling-1">4.5 Rescaling</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb61"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb61-1"><a href="#cb61-1" aria-hidden="true" tabindex="-1"></a><span class="co">#samples$density &lt;- densities</span></span>
+<span id="cb61-2"><a href="#cb61-2" aria-hidden="true" tabindex="-1"></a><span class="co">#lixels$density &lt;- densities</span></span>
+<span id="cb61-3"><a href="#cb61-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb61-4"><a href="#cb61-4" aria-hidden="true" tabindex="-1"></a><span class="co">#samples$density &lt;- samples$density*1000</span></span>
+<span id="cb61-5"><a href="#cb61-5" aria-hidden="true" tabindex="-1"></a><span class="co">#lixels$density &lt;- lixels$density*1000</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="plotting" class="level2">
+<h2 class="anchored" data-anchor-id="plotting">Plotting</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb62"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb62-1"><a href="#cb62-1" aria-hidden="true" tabindex="-1"></a><span class="co">#tm_shape(lixels)+</span></span>
+<span id="cb62-2"><a href="#cb62-2" aria-hidden="true" tabindex="-1"></a><span class="co">#  tm_lines(col="density")+</span></span>
+<span id="cb62-3"><a href="#cb62-3" aria-hidden="true" tabindex="-1"></a><span class="co">#tm_shape(sf_object)+</span></span>
+<span id="cb62-4"><a href="#cb62-4" aria-hidden="true" tabindex="-1"></a><span class="co">#  tm_dots()</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+</section>
+<section id="improvements" class="level1">
+<h1>5 Improvements</h1>
+<p>Should better know how to make processing faster. Using a small sample, even smaller den grab1 and even smaller den the roads data, so that when time comes to render / build, it would be much faster. Right now my line of code can take 30 mins or more to even build</p>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+</body></html>
