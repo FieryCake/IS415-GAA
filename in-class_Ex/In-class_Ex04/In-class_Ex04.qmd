@@ -1,22 +1,22 @@
-
-
-
-
 ```{r}
 pacman::p_load(sf, spdep, tmap, tidyverse, knitr, GWmodel)
 
 ```
-```{r} 
+
+```{r}
 hunan <- st_read(dsn = "data/geospatial", 
                  layer = "Hunan")
 ```
+
 ```{r}
 hunan2012 <- read_csv("data/aspatial/Hunan_2012.csv")
 ```
+
 ```{r}
 hunan <- left_join(hunan,hunan2012)%>%
   select(1:4, 7, 15)
 ```
+
 ```{r}
 hunan_sp <- hunan %>% as_Spatial()
 
@@ -34,10 +34,6 @@ gwstat <-gwss(data=hunan_sp,
 
 ```
 
-
-
-
-
 ```{r}
 basemap <- tm_shape(hunan) +
   tm_polygons() +
@@ -47,22 +43,23 @@ gdppc <- qtm(hunan, "GDPPC")
 tmap_arrange(basemap, gdppc, asp=1, ncol=2)
 ```
 
-
-
-
 ```{r}
 wm_q <- poly2nb(hunan, queen=TRUE)
 ```
+
 ```{r}
 summary(wm_q)
 ```
+
 ```{r}
 longitude <- map_dbl(hunan$geometry, ~st_centroid(.x)[[1]])
 
 ```
+
 ```{r}
 latitude <- map_dbl(hunan$geometry, ~st_centroid(.x)[[2]])
 ```
+
 ```{r}
 coords <- cbind(longitude, latitude)
 ```
@@ -79,22 +76,21 @@ k1dists <- unlist(nbdists(k1, coords, longlat = TRUE))
 wm_d62 <- dnearneigh(coords, 0, 62, longlat = TRUE)
 wm_d62
 ```
+
 based on 62km distance, find neighbours
 
 ```{r}
 knn6 <- knn2nb(knearneigh(coords, k=6))
 knn6
 ```
-Find those with 6 or higher neighbours
 
+Find those with 6 or higher neighbours
 
 ```{r}
 rswm_q <- nb2listw(wm_q, style="W", zero.policy = TRUE)
 rswm_q
 ```
+
 zero.policy - dont want 0
 
-
-lag.sum - doesnt include yourself. -> Meaning of it is takes the neighbouring neighbours, all their value, sum up, multipy by weight and get end results  (sum of neighours without himself)
-
-
+lag.sum - doesnt include yourself. -\> Meaning of it is takes the neighbouring neighbours, all their value, sum up, multipy by weight and get end results (sum of neighours without himself)

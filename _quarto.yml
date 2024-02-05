@@ -26,6 +26,8 @@ website:
             href: "in-class_Ex/In-class-Ex03/In-class_Ex03-NKDE.html"
           - text: "In class exercise 4.1"
             href: "in-class_Ex/In-class_Ex04/In-class_Ex04.html"
+          - text: "In class exercise 5"
+            href: "in-class_Ex/In-class_Ex05/In-class_Ex05.html"
             
       - text: "Take home exercise"
         menu: 
