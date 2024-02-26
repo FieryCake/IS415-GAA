@@ -1,0 +1,229 @@
+
+# Importing the packages
+```{r}
+pacman::p_load(sf, sfdep, tmap, plotly, tidyverse)
+```
+
+# Data Wrangling
+# Importing the data 1.0
+## Tainan
+```{r}
+tainan <- st_read(dsn = "data/geospatial", 
+                 layer = "TAINAN_VILLAGE") %>% st_transform(crs = 3824)
+```
+
+```{r}
+plot(st_geometry(tainan))
+```
+
+## Dengue Daily
+```{r}
+dengue <- read_csv("data/aspatial/Dengue_Daily.csv")
+```
+
+## Making the list of towns required - Found in assignment brief
+```{r}
+town_ids <- c("D01","D02","D04","D06","D07","D08","D32","D39")
+```
+
+## Filtering tainan villages based on the above list
+```{r}
+tainan_filtered_villages <- tainan %>%
+  filter(TOWNID %in% town_ids)
+```
+
+```{r}
+tainan_filtered_villages
+```
+
+## Plotting the map to see if it is what we want
+```{r}
+plot(st_geometry(tainan_filtered_villages))
+```
+
+## Filtering dengue dataset to only fall between epidemiology week 31-50, 2023.
+### Changing first column to transmit date - easier 
+```{r}
+colnames(dengue)[1] <- "transmit_date"
+```
+
+### Changing column type to date
+```{r}
+dengue$transmit_date <- as.Date(dengue$transmit_date)
+```
+
+### Filtering for week 31 - 50
+Epidemoiology weeks source- https://www.hpsc.ie/notifiablediseases/resources/epidemiologicalweeks/
+```{r}
+dengue_filtered <- dengue %>% filter(between(transmit_date, as.Date('2023-07-30'), as.Date('2023-12-16')))
+```
+
+### Only keeping date transmit , lat and long
+```{r}
+dengue_filtered <- select(dengue_filtered,1,10,11)
+colnames(dengue_filtered)[2] <- "lng"
+colnames(dengue_filtered)[3] <- "lat"
+```
+
+## Checking of CRS 1.1
+```{r}
+st_crs(tainan_filtered_villages)
+```
+
+# Joining the data of filtered village and dengue
+```{r}
+dengue_filtered
+```
+### Changing class from character to numeric
+```{r}
+dengue_filtered$lng <- as.numeric(dengue_filtered$lng)
+dengue_filtered$lat <- as.numeric(dengue_filtered$lat)
+```
+NA Values are introduced and we have to remove them
+
+### Removing NA Values
+```{r}
+dengue_filtered_complete <- na.omit(dengue_filtered)
+```
+
+### Transforming from decimal point to 3824
+```{r}
+
+sf_object <- st_as_sf(dengue_filtered_complete, coords = c("lng", "lat"), crs = 4326) %>% st_transform(crs = 3824)
+```
+
+## Finding the intercept
+### Making it a union so that finding points within this union is faster
+```{r}
+merged_polygon <- st_union(tainan_filtered_villages)
+```
+
+```{r}
+class(merged_polygon)
+class(sf_object)
+```
+
+## Intersection
+```{r}
+denguePointsInTainan <- st_intersection(sf_object, merged_polygon)
+```
+This one is to filter points found only in big polygon - it is faster than finding points in each polygon first
+
+## Finding points that fall within the different vilages, concetenating TOWNID and VILL ENG 
+```{r}
+#| eval: false
+
+town_dengue_intersections <- st_intersection(denguePointsInTainan, tainan_filtered_villages) %>% 
+  mutate(town = paste0(as.character(TOWNID)," ",as.character(VILLENG)))
+
+```
+Comment: Finding intersection of each point mapped to each town
+Will need to push it into a rds as it takes very long to compute
+
+## Write to RDS
+```{r}
+#| eval: false
+write_rds(town_dengue_intersections,"data/rds/town_dengue_intersections.rds")
+```
+
+## Read from RDS
+```{r}
+town_dengue_intersections_rds <-read_rds("data/rds/town_dengue_intersections.rds")
+town_dengue_intersections_rds <- select(town_dengue_intersections_rds,1,13)
+```
+
+```{r}
+plot(denguePointsInTainan)
+```
+
+```{r}
+tmap_mode("plot")
+
+tm_shape(tainan_filtered_villages) +tm_polygons()+
+
+tm_shape(denguePointsInTainan) +tm_dots()
+```
+
+## Joining the 2 datasets together
+```{r}
+df <- st_drop_geometry(town_dengue_intersections_rds)
+df <- data.frame(df)
+colnames(df)[2] <- "town"
+
+
+tainan_filtered_villages <- tainan_filtered_villages %>%
+  mutate(town = paste0(as.character(TOWNID), " ", as.character(VILLENG)))
+
+tainan_filtered_villages2<-select(tainan_filtered_villages,4,5,8,11,12)
+test2 <- left_join(df,tainan_filtered_villages2)
+```
+Steps:
+First i drop the geometric points as i already have town (comprises of TOWNID and village eng) - to seperate village level
+
+next, i mutate tainan_filtered_village (Map) to combine TownID and village eng too
+
+Left join the 2 data sets and filter those columns that i want
+
+## Calculating frequency
+```{r}
+town_frequency <- test2 %>%
+  group_by(town) %>%
+  summarise(frequency = n())
+
+test3 <- left_join(test2, town_frequency)
+
+class(test3)
+test3_sf <- st_as_sf(test3)
+
+```
+
+## Visualising Regional Development Indicator
+```{r}
+equal <- tm_shape(test3_sf) +
+  tm_fill("frequency",n=5,  style = "equal") +
+  tm_borders(alpha = 0.5) +
+  tm_layout(main.title = "Town Frequency")
+
+quantile<- tm_shape(test3_sf) +
+  tm_fill("frequency",n=5,  style = "quantile") +
+  tm_borders(alpha = 0.5) +
+  tm_layout(main.title = "Town Frequency")
+
+tmap_arrange(equal, 
+             quantile, 
+             asp=1, 
+             ncol=2)
+
+```
+
+#  Global Measures of Spatial Autocorrelation
+## Computing wm_q and writing to rds
+```{r}
+#| eval: false
+wm_q<-test3_sf %>% mutate(nb=st_contiguity(geometry), wt=st_weights(nb,style="W"),.before=1)
+```
+```{r}
+#| eval: false
+write_rds(wm_q,"data/rds/wm_qs.rds")
+```
+
+## Reading wm_q rds 
+```{r}
+wm_q <-read_rds("data/rds/wm_qs.rds")
+```
+
+```{r}
+global_moran_test(wm_q$frequency,wm_q$nb, wm_q$wt)
+```
+
+```{r}
+set.seed(1234)
+global_moran_perm(wm_q$frequency,
+                  wm_q$nb, 
+                  wm_q$wt,
+                  nsim=99)
+```
+
+
+
+
