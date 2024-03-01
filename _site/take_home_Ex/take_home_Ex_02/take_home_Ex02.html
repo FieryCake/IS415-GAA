@@ -239,12 +239,27 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#read-from-rds" id="toc-read-from-rds" class="nav-link" data-scroll-target="#read-from-rds">Read from RDS</a></li>
   <li><a href="#joining-the-2-datasets-together" id="toc-joining-the-2-datasets-together" class="nav-link" data-scroll-target="#joining-the-2-datasets-together">Joining the 2 datasets together</a></li>
   <li><a href="#calculating-frequency" id="toc-calculating-frequency" class="nav-link" data-scroll-target="#calculating-frequency">Calculating frequency</a></li>
+  <li><a href="#joining-the-data" id="toc-joining-the-data" class="nav-link" data-scroll-target="#joining-the-data">Joining the data</a></li>
   <li><a href="#visualising-regional-development-indicator" id="toc-visualising-regional-development-indicator" class="nav-link" data-scroll-target="#visualising-regional-development-indicator">Visualising Regional Development Indicator</a></li>
   </ul></li>
   <li><a href="#global-measures-of-spatial-autocorrelation" id="toc-global-measures-of-spatial-autocorrelation" class="nav-link" data-scroll-target="#global-measures-of-spatial-autocorrelation">Global Measures of Spatial Autocorrelation</a>
   <ul class="collapse">
   <li><a href="#computing-wm_q-and-writing-to-rds" id="toc-computing-wm_q-and-writing-to-rds" class="nav-link" data-scroll-target="#computing-wm_q-and-writing-to-rds">Computing wm_q and writing to rds</a></li>
   <li><a href="#reading-wm_q-rds" id="toc-reading-wm_q-rds" class="nav-link" data-scroll-target="#reading-wm_q-rds">Reading wm_q rds</a></li>
+  <li><a href="#morans-test" id="toc-morans-test" class="nav-link" data-scroll-target="#morans-test">Morans test</a></li>
+  <li><a href="#visualising-monte-carlo-morans-test" id="toc-visualising-monte-carlo-morans-test" class="nav-link" data-scroll-target="#visualising-monte-carlo-morans-test">Visualising Monte-carlo moran’s test</a></li>
+  <li><a href="#geary-c" id="toc-geary-c" class="nav-link" data-scroll-target="#geary-c">Geary C</a></li>
+  </ul></li>
+  <li><a href="#local-measures-of-spatial-autocorrelation-cluster-and-outlier-analysis" id="toc-local-measures-of-spatial-autocorrelation-cluster-and-outlier-analysis" class="nav-link" data-scroll-target="#local-measures-of-spatial-autocorrelation-cluster-and-outlier-analysis">Local Measures of Spatial Autocorrelation (Cluster and Outlier Analysis)</a>
+  <ul class="collapse">
+  <li><a href="#local-moran" id="toc-local-moran" class="nav-link" data-scroll-target="#local-moran">Local moran</a>
+  <ul class="collapse">
+  <li><a href="#joining-local-moran-results-and-wm_q" id="toc-joining-local-moran-results-and-wm_q" class="nav-link" data-scroll-target="#joining-local-moran-results-and-wm_q">joining Local moran results and wm_q</a></li>
+  </ul></li>
+  </ul></li>
+  <li><a href="#creating-lisa-cluster-map" id="toc-creating-lisa-cluster-map" class="nav-link" data-scroll-target="#creating-lisa-cluster-map">Creating Lisa cluster map</a>
+  <ul class="collapse">
+  <li><a href="#plotting-moran-scatter-plot" id="toc-plotting-moran-scatter-plot" class="nav-link" data-scroll-target="#plotting-moran-scatter-plot">Plotting Moran Scatter Plot</a></li>
   </ul></li>
   </ul>
 </nav>
@@ -257,7 +272,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="importing-the-packages" class="level1">
 <h1>Importing the packages</h1>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>pacman<span class="sc">::</span><span class="fu">p_load</span>(sf, sfdep, tmap, plotly, tidyverse)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>pacman<span class="sc">::</span><span class="fu">p_load</span>(sf, sfdep, tmap, plotly, tidyverse,spdep)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="data-wrangling" class="level1">
@@ -556,44 +571,54 @@ all geometries</code></pre>
 <p>Steps: First i drop the geometric points as i already have town (comprises of TOWNID and village eng) - to seperate village level</p>
 <p>next, i mutate tainan_filtered_village (Map) to combine TownID and village eng too</p>
 <p>Left join the 2 data sets and filter those columns that i want</p>
+<p>Joining these 2 will result in date transmitted, town, and other details like geometry etc.</p>
 </section>
 <section id="calculating-frequency" class="level2">
 <h2 class="anchored" data-anchor-id="calculating-frequency">Calculating frequency</h2>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb42"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a>town_frequency <span class="ot">&lt;-</span> test2 <span class="sc">%&gt;%</span></span>
 <span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(town) <span class="sc">%&gt;%</span></span>
-<span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">frequency =</span> <span class="fu">n</span>())</span>
-<span id="cb42-4"><a href="#cb42-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb42-5"><a href="#cb42-5" aria-hidden="true" tabindex="-1"></a>test3 <span class="ot">&lt;-</span> <span class="fu">left_join</span>(test2, town_frequency)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">frequency =</span> <span class="fu">n</span>())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="joining-the-data" class="level2">
+<h2 class="anchored" data-anchor-id="joining-the-data">Joining the data</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb43"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a>test3 <span class="ot">&lt;-</span> <span class="fu">left_join</span>(test2, town_frequency)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>Joining with `by = join_by(town)`</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb44"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="fu">class</span>(test3)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb45"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a><span class="fu">class</span>(test3)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] "data.frame"</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb46"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a>test3_sf <span class="ot">&lt;-</span> <span class="fu">st_as_sf</span>(test3)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb47"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a>unique_data <span class="ot">&lt;-</span> test3 <span class="sc">%&gt;%</span></span>
+<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>(town, <span class="at">.keep_all =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb47-3"><a href="#cb47-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-4"><a href="#cb47-4" aria-hidden="true" tabindex="-1"></a>test3_sf <span class="ot">&lt;-</span> <span class="fu">st_as_sf</span>(unique_data)</span>
+<span id="cb47-5"><a href="#cb47-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-6"><a href="#cb47-6" aria-hidden="true" tabindex="-1"></a>test4_sf <span class="ot">&lt;-</span> <span class="fu">st_as_sf</span>(test3)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="visualising-regional-development-indicator" class="level2">
 <h2 class="anchored" data-anchor-id="visualising-regional-development-indicator">Visualising Regional Development Indicator</h2>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb47"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a>equal <span class="ot">&lt;-</span> <span class="fu">tm_shape</span>(test3_sf) <span class="sc">+</span></span>
-<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_fill</span>(<span class="st">"frequency"</span>,<span class="at">n=</span><span class="dv">5</span>,  <span class="at">style =</span> <span class="st">"equal"</span>) <span class="sc">+</span></span>
-<span id="cb47-3"><a href="#cb47-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_borders</span>(<span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
-<span id="cb47-4"><a href="#cb47-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_layout</span>(<span class="at">main.title =</span> <span class="st">"Town Frequency"</span>)</span>
-<span id="cb47-5"><a href="#cb47-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb47-6"><a href="#cb47-6" aria-hidden="true" tabindex="-1"></a>quantile<span class="ot">&lt;-</span> <span class="fu">tm_shape</span>(test3_sf) <span class="sc">+</span></span>
-<span id="cb47-7"><a href="#cb47-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_fill</span>(<span class="st">"frequency"</span>,<span class="at">n=</span><span class="dv">5</span>,  <span class="at">style =</span> <span class="st">"quantile"</span>) <span class="sc">+</span></span>
-<span id="cb47-8"><a href="#cb47-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_borders</span>(<span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
-<span id="cb47-9"><a href="#cb47-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_layout</span>(<span class="at">main.title =</span> <span class="st">"Town Frequency"</span>)</span>
-<span id="cb47-10"><a href="#cb47-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb47-11"><a href="#cb47-11" aria-hidden="true" tabindex="-1"></a><span class="fu">tmap_arrange</span>(equal, </span>
-<span id="cb47-12"><a href="#cb47-12" aria-hidden="true" tabindex="-1"></a>             quantile, </span>
-<span id="cb47-13"><a href="#cb47-13" aria-hidden="true" tabindex="-1"></a>             <span class="at">asp=</span><span class="dv">1</span>, </span>
-<span id="cb47-14"><a href="#cb47-14" aria-hidden="true" tabindex="-1"></a>             <span class="at">ncol=</span><span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb48"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a>equal <span class="ot">&lt;-</span> <span class="fu">tm_shape</span>(test3_sf) <span class="sc">+</span></span>
+<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_fill</span>(<span class="st">"frequency"</span>,<span class="at">n=</span><span class="dv">5</span>,  <span class="at">style =</span> <span class="st">"equal"</span>) <span class="sc">+</span></span>
+<span id="cb48-3"><a href="#cb48-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_borders</span>(<span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
+<span id="cb48-4"><a href="#cb48-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_layout</span>(<span class="at">main.title =</span> <span class="st">"Town Frequency"</span>)</span>
+<span id="cb48-5"><a href="#cb48-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-6"><a href="#cb48-6" aria-hidden="true" tabindex="-1"></a>quantile<span class="ot">&lt;-</span> <span class="fu">tm_shape</span>(test3_sf) <span class="sc">+</span></span>
+<span id="cb48-7"><a href="#cb48-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_fill</span>(<span class="st">"frequency"</span>,<span class="at">n=</span><span class="dv">5</span>,  <span class="at">style =</span> <span class="st">"quantile"</span>) <span class="sc">+</span></span>
+<span id="cb48-8"><a href="#cb48-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_borders</span>(<span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
+<span id="cb48-9"><a href="#cb48-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_layout</span>(<span class="at">main.title =</span> <span class="st">"Town Frequency"</span>)</span>
+<span id="cb48-10"><a href="#cb48-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-11"><a href="#cb48-11" aria-hidden="true" tabindex="-1"></a><span class="fu">tmap_arrange</span>(equal, </span>
+<span id="cb48-12"><a href="#cb48-12" aria-hidden="true" tabindex="-1"></a>             quantile, </span>
+<span id="cb48-13"><a href="#cb48-13" aria-hidden="true" tabindex="-1"></a>             <span class="at">asp=</span><span class="dv">1</span>, </span>
+<span id="cb48-14"><a href="#cb48-14" aria-hidden="true" tabindex="-1"></a>             <span class="at">ncol=</span><span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="take_home_Ex02_files/figure-html/unnamed-chunk-28-1.png" class="img-fluid" width="672"></p>
+<p><img src="take_home_Ex02_files/figure-html/unnamed-chunk-29-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
 </section>
@@ -603,19 +628,22 @@ all geometries</code></pre>
 <section id="computing-wm_q-and-writing-to-rds" class="level2">
 <h2 class="anchored" data-anchor-id="computing-wm_q-and-writing-to-rds">Computing wm_q and writing to rds</h2>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb48"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a>wm_q<span class="ot">&lt;-</span>test3_sf <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(<span class="at">nb=</span><span class="fu">st_contiguity</span>(geometry), <span class="at">wt=</span><span class="fu">st_weights</span>(nb,<span class="at">style=</span><span class="st">"W"</span>),<span class="at">.before=</span><span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb49"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a>wm_q<span class="ot">&lt;-</span>test3_sf <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(<span class="at">nb=</span><span class="fu">st_contiguity</span>(geometry), <span class="at">wt=</span><span class="fu">st_weights</span>(nb,<span class="at">style=</span><span class="st">"W"</span>),<span class="at">.before=</span><span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb49"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a><span class="fu">write_rds</span>(wm_q,<span class="st">"data/rds/wm_qs.rds"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb50"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a><span class="fu">write_rds</span>(wm_q,<span class="st">"data/rds/wm_qs.rds"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="reading-wm_q-rds" class="level2">
 <h2 class="anchored" data-anchor-id="reading-wm_q-rds">Reading wm_q rds</h2>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb50"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a>wm_q <span class="ot">&lt;-</span><span class="fu">read_rds</span>(<span class="st">"data/rds/wm_qs.rds"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb51"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a>wm_q <span class="ot">&lt;-</span><span class="fu">read_rds</span>(<span class="st">"data/rds/wm_qs.rds"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+</section>
+<section id="morans-test" class="level2">
+<h2 class="anchored" data-anchor-id="morans-test">Morans test</h2>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb51"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a><span class="fu">global_moran_test</span>(wm_q<span class="sc">$</span>frequency,wm_q<span class="sc">$</span>nb, wm_q<span class="sc">$</span>wt)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb52"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a><span class="fu">global_moran_test</span>(wm_q<span class="sc">$</span>frequency,wm_q<span class="sc">$</span>nb, wm_q<span class="sc">$</span>wt)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
     Moran I test under randomisation
@@ -623,19 +651,29 @@ all geometries</code></pre>
 data:  x  
 weights: listw    
 
-Moran I statistic standard deviate = 1181.9, p-value &lt; 2.2e-16
+Moran I statistic standard deviate = 12.709, p-value &lt; 2.2e-16
 alternative hypothesis: greater
 sample estimates:
 Moran I statistic       Expectation          Variance 
-     5.209828e-01     -5.314908e-05      1.943540e-07 </code></pre>
+      0.464548385      -0.003906250       0.001358733 </code></pre>
 </div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb53"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1234</span>)</span>
-<span id="cb53-2"><a href="#cb53-2" aria-hidden="true" tabindex="-1"></a><span class="fu">global_moran_perm</span>(wm_q<span class="sc">$</span>frequency,</span>
-<span id="cb53-3"><a href="#cb53-3" aria-hidden="true" tabindex="-1"></a>                  wm_q<span class="sc">$</span>nb, </span>
-<span id="cb53-4"><a href="#cb53-4" aria-hidden="true" tabindex="-1"></a>                  wm_q<span class="sc">$</span>wt,</span>
-<span id="cb53-5"><a href="#cb53-5" aria-hidden="true" tabindex="-1"></a>                  <span class="at">nsim=</span><span class="dv">99</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb54"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1234</span>)</span>
+<span id="cb54-2"><a href="#cb54-2" aria-hidden="true" tabindex="-1"></a>bperm <span class="ot">=</span> <span class="fu">global_moran_perm</span>(wm_q<span class="sc">$</span>frequency,</span>
+<span id="cb54-3"><a href="#cb54-3" aria-hidden="true" tabindex="-1"></a>                  wm_q<span class="sc">$</span>nb, </span>
+<span id="cb54-4"><a href="#cb54-4" aria-hidden="true" tabindex="-1"></a>                  wm_q<span class="sc">$</span>wt,</span>
+<span id="cb54-5"><a href="#cb54-5" aria-hidden="true" tabindex="-1"></a>                  <span class="at">nsim=</span><span class="dv">99</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb55"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(bperm<span class="sc">$</span>res[<span class="dv">1</span><span class="sc">:</span><span class="dv">99</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>      Min.    1st Qu.     Median       Mean    3rd Qu.       Max. 
+-0.0790354 -0.0251184 -0.0040105 -0.0003563  0.0221268  0.0968728 </code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb57"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true" tabindex="-1"></a>bperm</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
     Monte-Carlo simulation of Moran I
@@ -644,9 +682,2240 @@ data:  x
 weights: listw  
 number of simulations + 1: 100 
 
-statistic = 0.52098, observed rank = 100, p-value &lt; 2.2e-16
+statistic = 0.46455, observed rank = 100, p-value &lt; 2.2e-16
 alternative hypothesis: two.sided</code></pre>
 </div>
+</div>
+</section>
+<section id="visualising-monte-carlo-morans-test" class="level2">
+<h2 class="anchored" data-anchor-id="visualising-monte-carlo-morans-test">Visualising Monte-carlo moran’s test</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb59"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb59-1"><a href="#cb59-1" aria-hidden="true" tabindex="-1"></a><span class="fu">hist</span>(bperm<span class="sc">$</span>res, </span>
+<span id="cb59-2"><a href="#cb59-2" aria-hidden="true" tabindex="-1"></a>     <span class="at">freq=</span><span class="cn">TRUE</span>, </span>
+<span id="cb59-3"><a href="#cb59-3" aria-hidden="true" tabindex="-1"></a>     <span class="at">breaks=</span><span class="dv">5</span>, </span>
+<span id="cb59-4"><a href="#cb59-4" aria-hidden="true" tabindex="-1"></a>     <span class="at">xlab=</span><span class="st">"Simulated Moran's I"</span>)</span>
+<span id="cb59-5"><a href="#cb59-5" aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">v=</span><span class="dv">0</span>, </span>
+<span id="cb59-6"><a href="#cb59-6" aria-hidden="true" tabindex="-1"></a>       <span class="at">col=</span><span class="st">"red"</span>) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="take_home_Ex02_files/figure-html/unnamed-chunk-37-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>Results of the moran’s test indicate that there is strong evidence to suggest that there is significant spatial autocorrelation the data. ( p values &lt; 2.2e-16)</p>
+</section>
+<section id="geary-c" class="level2">
+<h2 class="anchored" data-anchor-id="geary-c">Geary C</h2>
+<p>Arguments are the same as Moran (x, nb, wt, nsim)</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb60"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a>gperm <span class="ot">=</span> <span class="fu">global_c_perm</span>(wm_q<span class="sc">$</span>frequency,</span>
+<span id="cb60-2"><a href="#cb60-2" aria-hidden="true" tabindex="-1"></a>                  wm_q<span class="sc">$</span>nb, </span>
+<span id="cb60-3"><a href="#cb60-3" aria-hidden="true" tabindex="-1"></a>                  wm_q<span class="sc">$</span>wt,</span>
+<span id="cb60-4"><a href="#cb60-4" aria-hidden="true" tabindex="-1"></a>                  <span class="at">nsim=</span><span class="dv">99</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb61"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb61-1"><a href="#cb61-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(gperm<span class="sc">$</span>res[<span class="dv">1</span><span class="sc">:</span><span class="dv">99</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+ 0.8631  0.9645  0.9993  0.9983  1.0283  1.0940 </code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb63"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb63-1"><a href="#cb63-1" aria-hidden="true" tabindex="-1"></a>gperm</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+    Monte-Carlo simulation of Geary C
+
+data:  x 
+weights: listw 
+number of simulations + 1: 100 
+
+statistic = 0.49851, observed rank = 1, p-value = 0.01
+alternative hypothesis: greater</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb65"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb65-1"><a href="#cb65-1" aria-hidden="true" tabindex="-1"></a><span class="fu">hist</span>(gperm<span class="sc">$</span>res, <span class="at">freq=</span><span class="cn">TRUE</span>, <span class="at">breaks=</span><span class="dv">20</span>, <span class="at">xlab=</span><span class="st">"Simulated Geary c"</span>)</span>
+<span id="cb65-2"><a href="#cb65-2" aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">v=</span><span class="dv">1</span>, <span class="at">col=</span><span class="st">"red"</span>) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="take_home_Ex02_files/figure-html/unnamed-chunk-41-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>Results of the geary c test indicate that there is strong evidence to suggest that there is significant spatial autocorrelation the data. ( p values &lt; 0.01) - Positive spatial autocorrelation.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb66"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb66-1"><a href="#cb66-1" aria-hidden="true" tabindex="-1"></a>MI_corr <span class="ot">&lt;-</span> <span class="fu">sp.correlogram</span>(wm_q<span class="sc">$</span>nb, </span>
+<span id="cb66-2"><a href="#cb66-2" aria-hidden="true" tabindex="-1"></a>                          wm_q<span class="sc">$</span>frequency, </span>
+<span id="cb66-3"><a href="#cb66-3" aria-hidden="true" tabindex="-1"></a>                          <span class="at">order=</span><span class="dv">6</span>, </span>
+<span id="cb66-4"><a href="#cb66-4" aria-hidden="true" tabindex="-1"></a>                          <span class="at">method=</span><span class="st">"I"</span>, </span>
+<span id="cb66-5"><a href="#cb66-5" aria-hidden="true" tabindex="-1"></a>                          <span class="at">style=</span><span class="st">"W"</span>)</span>
+<span id="cb66-6"><a href="#cb66-6" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(MI_corr)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="take_home_Ex02_files/figure-html/unnamed-chunk-42-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</section>
+</section>
+<section id="local-measures-of-spatial-autocorrelation-cluster-and-outlier-analysis" class="level1">
+<h1>Local Measures of Spatial Autocorrelation (Cluster and Outlier Analysis)</h1>
+<section id="local-moran" class="level2">
+<h2 class="anchored" data-anchor-id="local-moran">Local moran</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb67"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb67-1"><a href="#cb67-1" aria-hidden="true" tabindex="-1"></a>localMoran <span class="ot">=</span> <span class="fu">local_moran</span>(wm_q<span class="sc">$</span>frequency,</span>
+<span id="cb67-2"><a href="#cb67-2" aria-hidden="true" tabindex="-1"></a>                  wm_q<span class="sc">$</span>nb, </span>
+<span id="cb67-3"><a href="#cb67-3" aria-hidden="true" tabindex="-1"></a>                  wm_q<span class="sc">$</span>wt,</span>
+<span id="cb67-4"><a href="#cb67-4" aria-hidden="true" tabindex="-1"></a>                  <span class="at">nsim=</span><span class="dv">99</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb68"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb68-1"><a href="#cb68-1" aria-hidden="true" tabindex="-1"></a>localMoran</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>               ii           eii       var_ii         z_ii         p_ii p_ii_sim
+1    1.4041686190 -7.975279e-02 6.179796e-01  1.887660261 5.907157e-02     0.02
+2    0.7566799711 -2.695340e-02 1.537089e-01  1.998772977 4.563292e-02     0.04
+3    0.0348658160  2.128719e-02 4.930900e-02  0.061149477 9.512402e-01     0.92
+4   -0.2144958309  2.470731e-02 8.376675e-02 -0.826477513 4.085333e-01     0.36
+5    1.4326694701  3.819232e-03 3.084337e-01  2.572798491 1.008799e-02     0.02
+6    1.2956349824  1.677889e-02 2.038934e-01  2.832174846 4.623256e-03     0.02
+7    0.3259959174 -2.920996e-04 9.604740e-02  1.052830157 2.924188e-01     0.32
+8    0.0205861619 -3.214834e-02 1.700651e-02  0.404377725 6.859350e-01     0.68
+9    0.4029021290  1.363357e-02 7.914002e-02  1.383729637 1.664413e-01     0.18
+10   0.0864318728  6.370220e-03 3.249889e-03  1.404398184 1.602003e-01     0.10
+11   0.5624332176  6.824033e-03 1.517689e-01  1.426191986 1.538129e-01     0.06
+12   1.4284211906 -9.462331e-03 3.691925e-01  2.366449520 1.795962e-02     0.02
+13   1.3707870217  8.216073e-02 2.321706e-01  2.674381612 7.486720e-03     0.02
+14   1.2267103076  2.351483e-02 4.023762e-01  1.896793543 5.785519e-02     0.02
+15   0.5777123718 -2.431520e-02 2.303853e-01  1.254264214 2.097460e-01     0.10
+16   0.3761302160  5.702499e-02 1.408497e-01  0.850268368 3.951759e-01     0.38
+17  -0.1083529980 -4.604679e-03 5.758444e-03 -1.367188785 1.715661e-01     0.16
+18   0.6387676536  3.038147e-03 1.510583e-01  1.635686673 1.019052e-01     0.10
+19   1.6954622322 -1.699376e-01 7.822037e-01  2.109172097 3.492973e-02     0.06
+20   0.3202209908 -1.364257e-02 5.726716e-02  1.395134858 1.629752e-01     0.20
+21   0.0034498159  1.019867e-03 2.492111e-05  0.486758280 6.264296e-01     0.68
+22  -0.2216117441  7.860882e-03 6.907701e-03 -2.760985539 5.762723e-03     0.06
+23   0.9460460404 -2.474282e-03 4.611467e-01  1.396777027 1.624806e-01     0.20
+24   0.3387501265  6.578480e-03 5.810963e-02  1.377966027 1.682138e-01     0.24
+25   0.9553398694  5.490369e-02 2.034560e-01  1.996262443 4.590536e-02     0.02
+26   1.1539477468  3.464007e-02 2.898921e-01  2.078889013 3.762755e-02     0.02
+27   0.0330966224  3.812626e-04 4.458019e-03  0.489982718 6.241461e-01     0.56
+28   0.1013126164 -1.017434e-02 1.626046e-02  0.874294202 3.819581e-01     0.40
+29  -0.2488530664  3.126714e-03 1.784645e-02 -1.886209000 5.926680e-02     0.12
+30  -0.1064160994 -3.844044e-03 1.351707e-02 -0.882242083 3.776459e-01     0.44
+31   0.2104012185 -3.607266e-02 7.572913e-02  0.895652243 3.704385e-01     0.36
+32   1.1833260437 -6.009556e-02 7.328540e-01  1.452478380 1.463686e-01     0.12
+33   0.2489016126  1.102545e-02 8.767574e-02  0.803361848 4.217656e-01     0.50
+34   0.7374847102 -4.821446e-02 8.463584e-02  2.700717330 6.919012e-03     0.04
+35   0.7387073151 -6.418863e-02 5.608623e-02  3.390245315 6.983011e-04     0.06
+36   1.7123360885 -8.638065e-02 2.776370e-01  3.413690374 6.408937e-04     0.02
+37  -0.0294895280  5.510372e-02 7.524844e-02 -0.308380552 7.577928e-01     0.78
+38   1.7750388884  5.931692e-02 5.132341e-01  2.394909720 1.662446e-02     0.02
+39   0.1004682421 -1.660350e-02 1.394683e-02  0.991321108 3.215288e-01     0.34
+40  -0.1688626282 -2.282346e-02 9.636563e-02 -0.470444374 6.380376e-01     0.66
+41   1.4043666317 -6.953689e-03 1.408982e-01  3.759870766 1.700012e-04     0.02
+42   0.5175225906 -1.357344e-02 1.391951e-01  1.423511925 1.545878e-01     0.18
+43   0.7985940575 -4.678399e-02 1.978563e-01  1.900535854 5.736283e-02     0.10
+44   2.4345708689 -3.217894e-02 5.069145e-01  3.464637117 5.309474e-04     0.02
+45  -0.0192914423  7.842113e-05 1.765935e-03 -0.460934455 6.448456e-01     0.54
+46  -0.0401899335 -1.634733e-03 2.840688e-04 -2.287553176 2.216356e-02     0.08
+47   0.0410952243  7.627448e-03 1.120456e-03  0.999837713 3.173891e-01     0.34
+48  -0.0287912211  6.307759e-03 1.374626e-02 -0.299365880 7.646609e-01     0.88
+49  -0.0240540084  6.503569e-02 7.100430e-02 -0.334337582 7.381248e-01     0.80
+50   1.9078948238  2.064408e-03 4.201427e-01  2.940260607 3.279363e-03     0.04
+51  -0.0339032030 -4.224642e-02 1.158963e-01  0.024507489 9.804478e-01     0.96
+52   0.4217875686  3.586413e-03 4.442875e-02  1.984052577 4.724998e-02     0.08
+53   0.0602204717 -6.617464e-03 1.685922e-01  0.162781226 8.706907e-01     0.98
+54  -0.0451105095 -5.351200e-03 2.734392e-03 -0.760341113 4.470507e-01     0.56
+55   0.0513808927  2.530750e-02 6.431728e-02  0.102809595 9.181141e-01     0.98
+56   0.7253086373  4.934287e-02 3.459899e-01  1.149193112 2.504764e-01     0.24
+57  -0.1064236242  1.248291e-02 3.103382e-02 -0.674975644 4.996912e-01     0.46
+58   0.0281981762 -2.185428e-02 1.138868e-02  0.469017096 6.390574e-01     0.64
+59   0.0272130350  1.808563e-02 1.272972e-01  0.025582207 9.795906e-01     1.00
+60   0.1700085354  1.358745e-02 3.108546e-02  0.887190022 3.749766e-01     0.40
+61   0.0724507804  9.027424e-03 1.468336e-02  0.523403289 6.006936e-01     0.54
+62   0.3619937045 -1.111617e-02 1.317808e-01  1.027804823 3.040416e-01     0.30
+63   0.0739534804  1.751898e-03 1.608924e-03  1.800026468 7.185646e-02     0.14
+64   0.5459091963  1.853381e-02 1.179331e-01  1.535684480 1.246158e-01     0.14
+65   0.6570304000  2.162435e-02 7.674233e-02  2.293685426 2.180857e-02     0.06
+66   0.0497501281  3.540777e-02 7.626924e-02  0.051933301 9.585818e-01     0.92
+67   0.0214868227  2.306071e-02 3.378937e-02 -0.008562159 9.931685e-01     0.86
+68   0.0243155385  2.188507e-04 1.026440e-02  0.237843107 8.120028e-01     0.88
+69  -0.0024638710 -4.133693e-04 9.469471e-05 -0.210715889 8.331090e-01     0.72
+70  -0.0380061912  5.249391e-04 2.954185e-02 -0.224177965 8.226188e-01     0.96
+71  -0.0314135633 -3.774014e-03 7.939385e-03 -0.310196946 7.564112e-01     0.72
+72   0.0315575759  6.738054e-03 2.974468e-02  0.143909258 8.855721e-01     0.86
+73  -0.0298218712  1.538638e-02 4.559694e-02 -0.211714153 8.323300e-01     0.92
+74   0.9379230875 -4.910192e-02 2.378997e-01  2.023630365 4.300820e-02     0.08
+75   0.1479322098  2.797630e-03 4.212806e-03  2.236068774 2.534727e-02     0.06
+76   0.1523439917  5.457846e-03 8.068534e-03  1.635247582 1.019972e-01     0.20
+77   0.4531098021 -5.783986e-02 1.166908e-01  1.495752604 1.347181e-01     0.08
+78   0.9283083061 -2.358030e-02 1.823701e-01  2.228996106 2.581416e-02     0.02
+79   0.8646213115  8.330811e-04 3.213897e-01  1.523671432 1.275908e-01     0.14
+80   1.0720294115 -1.833391e-01 3.261627e-01  2.198133521 2.793959e-02     0.02
+81   1.0795199112 -4.421176e-02 4.603353e-01  1.656248423 9.767152e-02     0.08
+82   0.2057583335  3.919963e-02 1.112916e-01  0.499270747 6.175887e-01     0.74
+83   0.7132140601 -1.712422e-02 1.950814e-01  1.653545312 9.821993e-02     0.04
+84   0.0187942801 -4.511355e-03 1.223509e-03  0.666280816 5.052316e-01     0.54
+85   0.5183949063 -7.427069e-02 1.047368e-01  1.831302605 6.705539e-02     0.14
+86   0.4524756857 -4.162083e-02 3.608520e-01  0.822521429 4.107802e-01     0.38
+87   2.3053380976 -4.949547e-02 5.040770e-01  3.316742559 9.107349e-04     0.02
+88   1.4371741060 -2.531268e-02 2.094734e-01  3.195416865 1.396290e-03     0.02
+89   0.2149580835  9.928216e-03 9.131678e-02  0.678487486 4.974627e-01     0.44
+90   3.5254581204 -1.905586e-01 1.023310e+00  3.673448652 2.392988e-04     0.02
+91   0.2221196069  1.143437e-02 1.064222e-01  0.645829751 5.183896e-01     0.62
+92  -0.0055555940 -1.096053e-03 3.989209e-05 -0.706068367 4.801456e-01     0.58
+93   0.4939905125  1.951937e-02 1.736639e-01  1.138557544 2.548877e-01     0.22
+94   1.2071449184 -1.317649e-01 7.348249e-01  1.561922168 1.183063e-01     0.18
+95   0.3764225023  6.209261e-02 9.118694e-02  1.040924785 2.979105e-01     0.30
+96   0.5600457078  9.351821e-02 1.622462e-01  1.158217172 2.467754e-01     0.24
+97   0.0715103150  2.912862e-03 1.181704e-03  1.995508540 4.598744e-02     0.10
+98   0.3737626643  5.368416e-02 4.067737e-02  1.587011533 1.125100e-01     0.10
+99   0.6408785894 -1.741634e-03 1.276240e-01  1.798821804 7.204687e-02     0.06
+100 -0.2636451776 -1.852539e-02 1.138066e-01 -0.726598616 4.674719e-01     0.48
+101  0.2594825291 -3.544526e-02 3.944063e-02  1.485059307 1.375281e-01     0.16
+102 -0.4081508560 -2.152182e-02 8.117363e-02 -1.357022272 1.747741e-01     0.24
+103  0.2199743529  2.289122e-02 5.399108e-01  0.268218334 7.885313e-01     0.68
+104  0.0497991106 -3.467999e-03 2.870330e-03  0.994244503 3.201038e-01     0.30
+105  0.0051955830 -5.179616e-04 1.956154e-03  0.129182639 8.972131e-01     0.84
+106  0.0019738078 -3.630286e-04 2.251494e-04  0.155737407 8.762400e-01     0.86
+107 -0.0164186501  3.303724e-03 4.380703e-04 -0.942295897 3.460412e-01     0.32
+108  0.0046827568  9.194780e-05 1.120041e-04  0.433782717 6.644462e-01     0.80
+109  0.4473926945  1.883629e-02 1.439664e-01  1.129476878 2.586967e-01     0.28
+110  2.9543242965  1.170655e-01 8.999106e-01  2.990881993 2.781730e-03     0.02
+111  1.6289304760 -2.521623e-02 3.333681e-01  2.864916913 4.171187e-03     0.04
+112  0.0828241054 -5.472619e-03 1.544192e-02  0.710548787 4.773639e-01     0.40
+113  4.8767053129  5.344396e-02 1.279590e+00  4.263884251 2.009035e-05     0.02
+114  4.6218380075 -9.478309e-02 2.921748e+00  2.759367745 5.791332e-03     0.02
+115  0.6758342546 -1.254461e-02 1.848786e-01  1.600973942 1.093827e-01     0.08
+116  0.2456622321  1.724615e-02 6.431692e-01  0.284815791 7.757853e-01     0.68
+117  1.0496828535 -1.027519e-01 7.543773e-01  1.326850713 1.845581e-01     0.16
+118  1.3868453537  2.234948e-02 3.529854e-01  2.296644917 2.163903e-02     0.04
+119 -0.0035365467 -6.280247e-04 2.829276e-05 -0.546807836 5.845108e-01     0.66
+120  0.0808216240  1.330890e-02 3.573828e-03  1.129324639 2.587609e-01     0.26
+121 -0.0313260099  2.811773e-03 3.602627e-03 -0.568755536 5.695221e-01     0.58
+122  0.0349258729 -1.112247e-02 7.867190e-03  0.519163602 6.036467e-01     0.72
+123  0.0574960186  1.867794e-02 2.113492e-02  0.267013827 7.894585e-01     0.96
+124  0.0541357481 -5.439991e-04 9.016628e-03  0.575843422 5.647210e-01     0.64
+125  2.8553236617  1.516912e-02 1.275742e+00  2.514551875 1.191838e-02     0.06
+126  0.6813598292 -5.932807e-02 1.285657e-01  2.065725493 3.885441e-02     0.04
+127  0.2747144328  1.135895e-02 5.900965e-02  1.084128717 2.783077e-01     0.22
+128  0.1208831223 -3.687680e-03 3.064020e-03  2.250455724 2.442003e-02     0.02
+129  0.5101147224 -9.419236e-02 3.375944e-01  1.040064027 2.983102e-01     0.36
+130  0.3399024237 -4.148955e-02 2.756268e-01  0.726458583 4.675577e-01     0.52
+131  0.1387393883  1.799293e-02 2.308713e-02  0.794674767 4.268027e-01     0.44
+132  0.7357378072  2.022650e-02 1.112825e-01  2.144880775 3.196238e-02     0.02
+133  0.7820007507 -1.653096e-02 1.177643e-01  2.326941009 1.996841e-02     0.02
+134 -0.1960324785 -4.549748e-02 3.634317e-01 -0.249704339 8.028160e-01     0.64
+135 -0.0298220984  2.838690e-02 5.773501e-02 -0.242253765 8.085835e-01     0.64
+136  0.3905418249 -3.386964e-02 7.367147e-02  1.563642451 1.179016e-01     0.18
+137  0.4350509936  1.269639e-02 6.988859e-02  1.597622167 1.101271e-01     0.20
+138  0.8562428785 -3.517736e-03 4.983420e-01  1.217906054 2.232597e-01     0.24
+139  0.2163005994 -1.846795e-02 1.714845e-02  1.792782263 7.300775e-02     0.04
+140  0.3018807053 -1.656716e-02 1.418287e-02  2.673968081 7.495959e-03     0.04
+141  0.0622948287  3.884528e-03 3.089687e-02  0.332301422 7.396617e-01     0.90
+142 -0.1258967654  5.261134e-02 1.039456e-01 -0.553675010 5.798013e-01     0.74
+143  0.8293507380 -1.261981e-01 3.944673e-01  1.521414015 1.281560e-01     0.08
+144  0.4480644555 -3.765180e-02 8.114866e-02  1.705069036 8.818155e-02     0.08
+145 -0.0930553582  1.045498e-02 6.676188e-03 -1.266833247 2.052149e-01     0.22
+146 -0.0063677108 -1.385806e-03 5.922550e-03 -0.064735281 9.483848e-01     0.94
+147 -0.1425041564 -5.321304e-02 2.124851e-01 -0.193706406 8.464058e-01     0.84
+148  0.4006108725  1.617597e-02 2.420713e-01  0.781359919 4.345908e-01     0.42
+149 -0.0410320362  1.123224e-03 7.564946e-05 -4.846730288 1.255129e-06     0.02
+150  3.6518729032 -3.683247e-01 4.212581e+00  1.958724085 5.014511e-02     0.10
+151  2.3020091759 -8.098562e-02 5.313409e-01  3.269162083 1.078665e-03     0.02
+152  0.0740172287 -5.414394e-03 4.879457e-03  1.137123665 2.554866e-01     0.26
+153 -0.0376205146 -3.436379e-03 1.366080e-03 -0.924882380 3.550271e-01     0.40
+154  0.0045907548 -3.029616e-03 9.439359e-04  0.248030379 8.041109e-01     0.74
+155  0.0011378386  7.587827e-03 1.014338e-02 -0.064042394 9.489365e-01     0.82
+156  0.0077743176 -1.817178e-02 9.145586e-03  0.271310275 7.861524e-01     0.84
+157  0.9269778733  5.486811e-02 4.455482e-01  1.306543347 1.913678e-01     0.18
+158 -0.0333506607 -8.303951e-03 2.881521e-03 -0.466594668 6.407899e-01     0.56
+159  0.6293067769  3.715454e-02 1.117495e-01  1.771375319 7.649831e-02     0.02
+160  1.3383784501  4.629822e-02 7.017598e-01  1.542393725 1.229779e-01     0.04
+161  0.7297815268 -8.695435e-03 1.140928e-01  2.186290584 2.879435e-02     0.04
+162  0.0013183090 -1.685736e-04 1.827746e-06  1.099812646 2.714138e-01     0.26
+163  0.9803082017 -4.075318e-03 3.958197e-01  1.564644319 1.176663e-01     0.04
+164 -0.0053250210  4.255714e-04 1.474067e-04 -0.473646121 6.357523e-01     0.72
+165 -0.0783722094 -1.236308e-02 7.220661e-02 -0.245649318 8.059537e-01     0.64
+166  0.9178664149 -3.920660e-02 1.796848e-01  2.257820326 2.395686e-02     0.02
+167  0.6703504785 -1.477023e-02 2.960949e-01  1.259075172 2.080032e-01     0.18
+168  0.5718617233 -1.095834e-02 1.617297e-01  1.449237642 1.472712e-01     0.08
+169  0.6363437973 -8.716413e-03 1.911886e-01  1.475262442 1.401420e-01     0.10
+170  1.9204878717  7.117219e-03 3.145690e-01  3.411466930 6.461434e-04     0.02
+171  0.0148393281 -1.079039e-02 3.407108e-03  0.439087329 6.605983e-01     0.66
+172 -0.4000484291  9.689614e-03 1.834963e-02 -3.024771768 2.488208e-03     0.02
+173 -0.0666391093 -6.564353e-03 4.517011e-03 -0.893853724 3.714002e-01     0.44
+174 -0.0526772989  1.049672e-02 2.333598e-02 -0.413547609 6.792054e-01     0.74
+175 -0.1260639916 -3.366062e-03 2.206955e-02 -0.825924713 4.088468e-01     0.48
+176  0.0271380703  4.239784e-03 5.891073e-03  0.298336078 7.654467e-01     0.70
+177 -0.0775141727 -4.846986e-04 1.283026e-03 -2.150498762 3.151578e-02     0.06
+178  0.3172413361  3.128147e-04 2.632448e-01  0.617705485 5.367695e-01     0.54
+179 -0.1235476465 -3.448223e-02 2.946831e-02 -0.518837672 6.038739e-01     0.58
+180  0.0319285048  4.419825e-03 1.332702e-02  0.238288580 8.116573e-01     0.80
+181 -0.0955910327  2.857783e-02 2.930349e-02 -0.725359079 4.682318e-01     0.56
+182  0.1192203787  9.703337e-03 1.388097e-01  0.293948916 7.687969e-01     0.66
+183 -0.0483284310 -2.400040e-04 1.484220e-03 -1.248220761 2.119502e-01     0.26
+184  0.0151969515  2.475793e-03 6.877053e-03  0.153400043 8.780828e-01     0.94
+185  0.1082395752 -8.318822e-03 1.129821e-01  0.346767778 7.287658e-01     0.80
+186 -0.4063479188  4.702676e-02 1.671929e-01 -1.108787712 2.675218e-01     0.24
+187 -0.0396516269  2.389544e-03 4.380314e-03 -0.635217089 5.252868e-01     0.60
+188  0.0868985086  3.530133e-03 2.106312e-02  0.574433748 5.656743e-01     0.56
+189  1.9902367787  2.289989e-01 2.478070e+00  1.118822556 2.632158e-01     0.24
+190  0.1694618237  1.493020e-03 1.955483e-02  1.201162091 2.296883e-01     0.18
+191  0.0477743558  4.310242e-03 1.910885e-03  0.994291146 3.200811e-01     0.30
+192 -0.3714651359 -1.598156e-03 1.065541e-01 -1.133079593 2.571808e-01     0.26
+193 -0.0091811560  5.895379e-03 5.525534e-03 -0.202821693 8.392744e-01     0.98
+194  0.0088989492 -6.562988e-04 3.093523e-05  1.717968820 8.580230e-02     0.12
+195 -0.0390193495 -5.691871e-04 8.662490e-03 -0.413120547 6.795183e-01     0.70
+196 -0.0060704079  1.859512e-02 7.591561e-03 -0.283090263 7.771076e-01     0.72
+197 -0.0099732538  2.829528e-02 2.614346e-02 -0.236679332 8.129056e-01     0.72
+198  0.0187910619 -1.224652e-02 1.313337e-02  0.270831866 7.865204e-01     0.74
+199  0.0002325839  5.693855e-04 3.550640e-04 -0.017873961 9.857394e-01     0.92
+200  0.1990758806 -1.871196e-02 7.576575e-02  0.791219814 4.288157e-01     0.42
+201  0.4585731333 -5.328991e-03 1.421704e-01  1.230330447 2.185734e-01     0.18
+202 -0.0163677001 -7.405059e-03 1.863212e-02 -0.065660609 9.476480e-01     0.84
+203  0.0370871637 -3.441968e-03 2.023665e-02  0.284903624 7.757180e-01     0.78
+204 -0.0034679427  2.443646e-03 3.476707e-03 -0.100258261 9.201393e-01     0.96
+205  0.0120583675  7.234565e-03 5.166689e-02  0.021221857 9.830687e-01     0.98
+206  0.0933553646 -2.864725e-02 9.416549e-03  1.257254682 2.086614e-01     0.16
+207  0.0181832048 -1.093627e-02 6.792602e-03  0.353317716 7.238503e-01     0.76
+208  0.8275005694 -1.487025e-02 2.687413e-01  1.624935300 1.041763e-01     0.08
+209  0.5978246999 -1.126250e-02 1.572100e-01  1.536170628 1.244965e-01     0.08
+210  0.5381242333 -2.422650e-02 5.754813e-02  2.344183790 1.906877e-02     0.02
+211  0.0622547391  7.760824e-03 4.047902e-03  0.856511161 3.917151e-01     0.40
+212  0.9943248833  6.873207e-02 2.227457e-01  1.961170447 4.985914e-02     0.06
+213 -0.0172633814  2.279444e-03 7.687184e-04 -0.704861365 4.808965e-01     0.50
+214  0.0285283234 -3.502190e-03 2.999836e-03  0.584810505 5.586751e-01     0.68
+215  0.4043285015 -1.094774e-01 8.383236e-02  1.774570518 7.596883e-02     0.08
+216  0.3090050709 -1.446117e-02 8.991692e-03  3.411208371 6.467565e-04     0.02
+217  0.0135231309 -2.105082e-04 5.859606e-04  0.567350457 5.704761e-01     0.70
+218  0.0905530342  4.998607e-02 6.402898e-02  0.160318734 8.726300e-01     0.92
+219  0.3196898020  6.192044e-02 2.500666e-01  0.515470026 6.062246e-01     0.52
+220  0.0516000128 -9.063321e-03 6.193862e-03  0.770806744 4.408215e-01     0.42
+221  0.7469552415  5.642719e-02 3.136202e-01  1.233046122 2.175586e-01     0.12
+222  0.8428307411  1.250938e-01 2.108675e-01  1.563005319 1.180513e-01     0.10
+223 -0.5297934587 -1.918974e-01 7.064452e-01 -0.402016472 6.876719e-01     0.70
+224  0.4397933582 -5.878587e-02 3.652570e-01  0.824963864 4.093921e-01     0.50
+225  0.1737498257  2.661985e-02 3.770772e-02  0.757680371 4.486424e-01     0.42
+226  0.3627978705  4.101443e-03 4.550398e-02  1.681521197 9.266172e-02     0.10
+227  2.2107462050  5.494008e-03 2.198879e-01  4.702811575 2.566032e-06     0.02
+228  0.0003792680 -1.358209e-04 2.034739e-06  0.361100255 7.180245e-01     0.76
+229  0.5342601475  2.439164e-02 2.143081e-01  1.101384338 2.707294e-01     0.38
+230  0.2072099213  1.344017e-03 8.110582e-02  0.722867045 4.697616e-01     0.52
+231  0.4081696435 -4.799778e-03 1.931943e-02  2.971124043 2.967119e-03     0.02
+232  0.1540827167 -1.158885e-02 6.988806e-02  0.626680928 5.308684e-01     0.52
+233  0.4183527174  4.049033e-02 1.639346e-01  0.933250734 3.506905e-01     0.32
+234  0.4821163804  4.627536e-02 1.713202e-01  1.052988920 2.923461e-01     0.24
+235  0.0103567029 -8.218459e-02 1.410289e-01  0.246423140 8.053547e-01     0.90
+236  0.5468357072 -5.671771e-02 1.143758e-01  1.784632134 7.432101e-02     0.06
+237  0.5561316456 -9.001603e-03 7.227733e-01  0.664736955 5.062188e-01     0.54
+238  0.4657111793 -2.918939e-02 9.743750e-01  0.501366009 6.161136e-01     0.70
+239 -0.0452923636  2.595017e-03 9.909313e-02 -0.152124547 8.790887e-01     0.84
+240  0.5390210324  7.850363e-02 7.595562e-02  1.670960134 9.472955e-02     0.14
+241  0.7830717226 -2.223115e-02 9.021347e-02  2.681165153 7.336630e-03     0.02
+242  0.8650188512 -1.667342e-02 1.102726e-01  2.655114065 7.928160e-03     0.02
+243  0.2832149673 -2.463386e-02 8.628031e-02  1.048049148 2.946160e-01     0.34
+244 -0.3914303365 -2.631722e-02 1.487747e-01 -0.946592086 3.438467e-01     0.38
+245 -0.2968965334  7.666306e-03 1.721062e-02 -2.321553122 2.025701e-02     0.06
+246  0.7360297149 -8.424762e-02 2.255546e-01  1.727168957 8.413732e-02     0.04
+247  0.4397445176 -6.661630e-02 1.436134e-01  1.336172778 1.814928e-01     0.24
+248  1.2367741196  1.779324e-02 1.353979e-01  3.312766981 9.237791e-04     0.02
+249  0.7268376236 -1.819876e-03 9.095702e-02  2.416046665 1.569005e-02     0.02
+250  0.7686104780  4.335211e-02 1.700833e-01  1.758579024 7.864904e-02     0.02
+251  0.9001643889 -3.721599e-02 3.179736e-01  1.662341797 9.644426e-02     0.10
+252  0.8791610418 -4.197250e-02 3.487758e-01  1.559729954 1.188237e-01     0.04
+253  1.1177075741  4.887696e-02 2.627201e-01  2.085269520 3.704484e-02     0.02
+254  1.1831675957 -2.532560e-02 1.769822e-01  2.872627818 4.070734e-03     0.02
+255  0.1524054778  6.535181e-03 1.178442e-01  0.424925517 6.708910e-01     0.74
+256 -0.0024576240 -1.486027e-03 1.479213e-04 -0.079886045 9.363279e-01     0.94
+257  0.3194404247  1.740347e-02 1.513980e-02  2.454708870 1.409987e-02     0.06
+    p_folded_sim      skewness     kurtosis      mean    median     pysal
+1           0.01 -0.8617148587  1.150333532   Low-Low   Low-Low   Low-Low
+2           0.02 -0.5897378352  0.315083849   Low-Low   Low-Low   Low-Low
+3           0.46  0.0879434711 -0.564100652 High-High High-High High-High
+4           0.18 -0.5387235588  0.031417934  Low-High  Low-High  Low-High
+5           0.01 -0.3773048990 -0.037365166   Low-Low   Low-Low   Low-Low
+6           0.01 -0.6551054935  0.657355940   Low-Low   Low-Low   Low-Low
+7           0.16 -0.8394714779  0.749307894   Low-Low   Low-Low   Low-Low
+8           0.34 -0.2106086277 -0.517962448   Low-Low   Low-Low   Low-Low
+9           0.09  0.5198679787  0.524754230 High-High High-High High-High
+10          0.05 -0.7218975719  0.141151564   Low-Low  High-Low   Low-Low
+11          0.03 -1.1146899653  2.108400304   Low-Low   Low-Low   Low-Low
+12          0.01 -0.3721543244 -0.132175031   Low-Low   Low-Low   Low-Low
+13          0.01 -0.5050671318 -0.220406423   Low-Low   Low-Low   Low-Low
+14          0.01 -0.6811224867  0.508028432   Low-Low   Low-Low   Low-Low
+15          0.05 -1.0248290507  0.379900431   Low-Low   Low-Low   Low-Low
+16          0.19 -0.5947129815  0.573362853   Low-Low   Low-Low   Low-Low
+17          0.08  0.1751417973 -0.631854300  High-Low  High-Low  High-Low
+18          0.05 -0.5462248724  0.094487828   Low-Low   Low-Low   Low-Low
+19          0.03  0.8927681208  1.699702215 High-High High-High High-High
+20          0.10  0.9702650972  2.280384530 High-High High-High High-High
+21          0.34  0.5547188722  0.798546403 High-High High-High High-High
+22          0.03 -0.8370404275  1.311442923  Low-High  Low-High  Low-High
+23          0.10  0.6129396988 -0.017401846 High-High High-High High-High
+24          0.12  0.8703919340  1.174981832 High-High High-High High-High
+25          0.01 -0.6405721326  0.625557596   Low-Low   Low-Low   Low-Low
+26          0.01 -1.1994562157  3.037356680   Low-Low   Low-Low   Low-Low
+27          0.28  0.5671806423  0.868970833 High-High High-High High-High
+28          0.20  0.5302714815  0.529499154 High-High High-High High-High
+29          0.06 -0.5202923455  0.277050545  Low-High  Low-High  Low-High
+30          0.22 -0.0268210808 -0.308421671  Low-High  Low-High  Low-High
+31          0.18  0.1464697990 -0.256359695   Low-Low   Low-Low   Low-Low
+32          0.06  0.5777045879  0.516625369 High-High High-High High-High
+33          0.25 -0.5622576801  0.240068296   Low-Low   Low-Low   Low-Low
+34          0.02  0.1087380658  0.293050006 High-High High-High High-High
+35          0.03  0.9636515337  2.202303498 High-High High-High High-High
+36          0.01  0.2476861590 -0.441951303 High-High High-High High-High
+37          0.39 -0.6319319950  1.196984675  Low-High  Low-High  Low-High
+38          0.01  0.2306115609 -0.410567751 High-High High-High High-High
+39          0.17  0.3460043685 -0.169453185 High-High High-High High-High
+40          0.33 -0.2948450075 -0.833920795  Low-High  Low-High  Low-High
+41          0.01  0.3513447352  0.033673083 High-High High-High High-High
+42          0.09  0.8534504301  0.976316854 High-High High-High High-High
+43          0.05  0.6044104609  0.156786454 High-High High-High High-High
+44          0.01  0.2153922978 -0.353622154 High-High High-High High-High
+45          0.27 -0.7125956346  0.278667204  Low-High High-High  Low-High
+46          0.04 -0.6898889915  1.139513138  Low-High High-High  Low-High
+47          0.17  1.0696959450  3.364549345 High-High High-High High-High
+48          0.44  0.8300633830  0.617213305  High-Low  High-Low  High-Low
+49          0.40  0.6452292641  0.412425275  High-Low  High-Low  High-Low
+50          0.02  0.6264891755  0.292216333 High-High High-High High-High
+51          0.48  0.4052163198 -0.389730916  High-Low  High-Low  High-Low
+52          0.04  0.4413567994 -0.039380578 High-High High-High High-High
+53          0.49 -0.6283331805  0.432013974   Low-Low   Low-Low   Low-Low
+54          0.28 -0.0280007534 -0.594289809  High-Low  High-Low  High-Low
+55          0.49 -0.6565734671  0.161557111   Low-Low   Low-Low   Low-Low
+56          0.12  0.7485805313  1.144955047 High-High High-High High-High
+57          0.23 -0.6432730318 -0.058227500  Low-High  Low-High  Low-High
+58          0.32  0.4426904093 -0.087853007 High-High High-High High-High
+59          0.50 -0.7687266029  1.214478844   Low-Low   Low-Low   Low-Low
+60          0.20 -0.2845230642 -0.385691937   Low-Low   Low-Low   Low-Low
+61          0.27  0.3999427803  0.160749742 High-High High-High High-High
+62          0.15 -0.6428276032  1.111616678   Low-Low   Low-Low   Low-Low
+63          0.07  0.5866083187 -0.030421368 High-High High-High High-High
+64          0.07  1.1315392479  2.812281244 High-High High-High High-High
+65          0.03  0.3347746097  0.353990137 High-High High-High High-High
+66          0.46  0.3982755668 -0.326558481 High-High High-High High-High
+67          0.43 -0.6849297082  0.588627823   Low-Low   Low-Low   Low-Low
+68          0.44 -0.5443961423  0.044951049   Low-Low   Low-Low   Low-Low
+69          0.36 -0.5230915588 -0.104425379  Low-High High-High  Low-High
+70          0.48  0.6200034324 -0.197360054  High-Low  High-Low  High-Low
+71          0.36 -0.6031503649  0.080779260  Low-High  Low-High  Low-High
+72          0.43  0.4980989642 -0.324687446 High-High High-High High-High
+73          0.46  0.8105295960  0.801431812  High-Low  High-Low  High-Low
+74          0.04  0.3385276100  0.222092024 High-High High-High High-High
+75          0.03  0.7071891555  0.500551001 High-High High-High High-High
+76          0.10  0.4400253973 -0.522816478 High-High High-High High-High
+77          0.04 -0.9180690626  1.119250735   Low-Low   Low-Low   Low-Low
+78          0.01 -0.3117196425 -0.164584698   Low-Low   Low-Low   Low-Low
+79          0.07 -0.4509349072 -0.279620443   Low-Low   Low-Low   Low-Low
+80          0.01 -0.5602961833 -0.240176226   Low-Low   Low-Low   Low-Low
+81          0.04 -0.6730818920  0.118696103   Low-Low   Low-Low   Low-Low
+82          0.37 -0.4695788866  0.278828856   Low-Low   Low-Low   Low-Low
+83          0.02 -0.7028561157  0.145784956   Low-Low   Low-Low   Low-Low
+84          0.27  0.4445278721 -0.350904644 High-High High-High High-High
+85          0.07  0.4216255168 -0.386795314 High-High High-High High-High
+86          0.19  0.7169370770  1.069900111 High-High High-High High-High
+87          0.01  0.1414778101 -0.535425959 High-High High-High High-High
+88          0.01  0.2667781866 -0.115920848 High-High High-High High-High
+89          0.22  0.8450953642  0.436281024 High-High High-High High-High
+90          0.01  0.8466430293  0.692429750 High-High High-High High-High
+91          0.31 -0.7092883273 -0.128343886   Low-Low   Low-Low   Low-Low
+92          0.29  0.2865989715 -0.527822123  High-Low  High-Low  High-Low
+93          0.11  0.5054536800  0.333266910 High-High High-High High-High
+94          0.09  0.8457927306  0.943934370 High-High High-High High-High
+95          0.15 -0.5955457954  0.104007776   Low-Low   Low-Low   Low-Low
+96          0.12  1.0282984334  2.749442863 High-High High-High High-High
+97          0.05  0.3002485828 -0.300386055 High-High High-High High-High
+98          0.05 -0.3496908370 -0.227346337   Low-Low   Low-Low   Low-Low
+99          0.03 -0.4125661764 -0.142718104   Low-Low   Low-Low   Low-Low
+100         0.24 -0.1374239978 -0.552648654  Low-High  Low-High  Low-High
+101         0.08  0.3087723989 -0.451337911 High-High High-High High-High
+102         0.12 -0.2499212575 -0.126083458  Low-High  Low-High  Low-High
+103         0.34  0.7011008203  0.044566005 High-High High-High High-High
+104         0.15  0.8347996193  1.326669422 High-High High-High High-High
+105         0.42  0.2387675381 -0.707460797 High-High High-High High-High
+106         0.43  0.8564818030  2.264366890 High-High High-High High-High
+107         0.16 -0.1296812991 -0.289954122  Low-High High-High  Low-High
+108         0.40 -1.1602685648  1.984802978   Low-Low  High-Low   Low-Low
+109         0.14  0.6875450510  1.029905497 High-High High-High High-High
+110         0.01  0.6868717451 -0.004296619 High-High High-High High-High
+111         0.02  1.4146693273  5.446321073 High-High High-High High-High
+112         0.20  0.7123343206  0.698086789 High-High High-High High-High
+113         0.01  0.2251147303 -0.659007282 High-High High-High High-High
+114         0.01  0.3258231334 -0.381251821 High-High High-High High-High
+115         0.04 -0.5461570896  0.335102210   Low-Low   Low-Low   Low-Low
+116         0.34  0.6554160784  0.402139454 High-High High-High High-High
+117         0.08 -0.8095782785  0.271653374   Low-Low   Low-Low   Low-Low
+118         0.02 -0.5144011569  0.543777104   Low-Low   Low-Low   Low-Low
+119         0.33  0.5397095332 -0.012992073  High-Low  High-Low  High-Low
+120         0.13 -0.4504223504  0.387853944   Low-Low   Low-Low   Low-Low
+121         0.29  0.7517356505  0.338784043  High-Low  High-Low  High-Low
+122         0.36 -0.6823107085 -0.073926941   Low-Low   Low-Low   Low-Low
+123         0.48 -1.2797733217  2.879341453   Low-Low   Low-Low   Low-Low
+124         0.32 -0.1577735465 -0.532158157   Low-Low   Low-Low   Low-Low
+125         0.03  0.5708501946 -0.076586643 High-High High-High High-High
+126         0.02 -0.6419610125  0.243424001   Low-Low   Low-Low   Low-Low
+127         0.11 -0.7554351188  0.179302156   Low-Low   Low-Low   Low-Low
+128         0.01 -0.7373114741  1.923628345   Low-Low   Low-Low   Low-Low
+129         0.18 -0.0796119170 -0.351010970   Low-Low   Low-Low   Low-Low
+130         0.26 -0.8635930628  0.490875768   Low-Low   Low-Low   Low-Low
+131         0.22  0.2790339539 -0.399311210 High-High High-High High-High
+132         0.01 -0.8307859842  1.230757976   Low-Low   Low-Low   Low-Low
+133         0.01 -0.3153677241  0.452407579   Low-Low   Low-Low   Low-Low
+134         0.32 -1.2354961954  2.821562509  Low-High  Low-High  Low-High
+135         0.32 -1.1815804092  2.532472344  Low-High  Low-High  Low-High
+136         0.09  0.5598583310 -0.303431176 High-High High-High High-High
+137         0.10  0.5344283604  0.107347098 High-High High-High High-High
+138         0.12 -0.6224304489 -0.007205270   Low-Low   Low-Low   Low-Low
+139         0.02 -0.5247726361 -0.173272028   Low-Low   Low-Low   Low-Low
+140         0.02  0.2990403078  0.116823600 High-High High-High High-High
+141         0.45 -0.8272727689  0.415537603   Low-Low   Low-Low   Low-Low
+142         0.37  0.9418590186  0.315988934  High-Low  High-Low  High-Low
+143         0.04 -0.4761120190 -0.306259820   Low-Low   Low-Low   Low-Low
+144         0.04 -0.6658387073  0.675595856   Low-Low   Low-Low   Low-Low
+145         0.11  0.2453544253 -0.588495272  Low-High  Low-High  Low-High
+146         0.47 -0.1182913584 -0.285157383  Low-High  Low-High  Low-High
+147         0.42 -0.4062008892  0.394856332  Low-High  Low-High  Low-High
+148         0.21  0.4099512571 -0.133666475 High-High High-High High-High
+149         0.01 -0.3894904923 -0.241626948  Low-High High-High  Low-High
+150         0.05  0.3394845025 -0.362997545 High-High High-High High-High
+151         0.01  0.3931969263  0.058313527 High-High High-High High-High
+152         0.13 -0.0270407301 -0.496648580   Low-Low   Low-Low   Low-Low
+153         0.20  0.4875426353  0.214312348  High-Low  High-Low  High-Low
+154         0.37  0.4458071585 -0.378233321 High-High High-High High-High
+155         0.41 -0.4730361319  0.061986773   Low-Low   Low-Low   Low-Low
+156         0.42 -0.0602556657 -0.698437566   Low-Low   Low-Low   Low-Low
+157         0.09 -0.8921020955  1.276684799   Low-Low   Low-Low   Low-Low
+158         0.28 -0.6440952738  0.667642036  Low-High High-High  Low-High
+159         0.01 -1.1745230297  2.746178662   Low-Low   Low-Low   Low-Low
+160         0.02 -0.9109987599  0.602801478   Low-Low   Low-Low   Low-Low
+161         0.02 -0.0848432711 -0.186652462   Low-Low   Low-Low   Low-Low
+162         0.13 -0.5107734420  0.815455729   Low-Low  High-Low   Low-Low
+163         0.02 -1.2106382723  1.633091952   Low-Low   Low-Low   Low-Low
+164         0.36  1.1971378618  2.099689493  High-Low  High-Low  High-Low
+165         0.32 -0.9488980788  0.927458505  Low-High  Low-High  Low-High
+166         0.01 -0.4420604386 -0.277663217   Low-Low   Low-Low   Low-Low
+167         0.09 -0.5003748783  0.226203389   Low-Low   Low-Low   Low-Low
+168         0.04 -0.4148899252 -0.559737896   Low-Low   Low-Low   Low-Low
+169         0.05 -0.5223491853 -0.303695658   Low-Low   Low-Low   Low-Low
+170         0.01  0.4766447825  0.713403194 High-High High-High High-High
+171         0.33  0.0881258028 -0.709345861 High-High High-High High-High
+172         0.01 -0.3236410421 -0.733145486  Low-High  Low-High  Low-High
+173         0.22 -0.5137140836 -0.355860760  Low-High  Low-High  Low-High
+174         0.37 -0.0497906679 -0.726204936  Low-High  Low-High  Low-High
+175         0.24 -0.4874335581 -0.531359717  Low-High  Low-High  Low-High
+176         0.35  0.5708720142  0.074038000 High-High High-High High-High
+177         0.03 -0.2987637230 -0.253698039  Low-High High-High  Low-High
+178         0.27  0.7270598483  1.146230473 High-High High-High High-High
+179         0.29 -0.1199313993 -0.525226495  Low-High  Low-High  Low-High
+180         0.40  0.4113045673  0.052701304 High-High High-High High-High
+181         0.28  0.4464245842  0.840094417  High-Low  High-Low  High-Low
+182         0.33  1.1926569898  1.972574826 High-High High-High High-High
+183         0.13 -0.5928847943  0.567915485  Low-High High-High  Low-High
+184         0.47  0.4176528705  0.423595796 High-High High-High High-High
+185         0.40 -0.5236426766  0.046078423   Low-Low   Low-Low   Low-Low
+186         0.12  0.4507126998  0.025130850  High-Low  High-Low  High-Low
+187         0.30  0.1700009912 -0.486438534  High-Low  High-Low  High-Low
+188         0.28  0.1694259178 -0.250351837 High-High High-High High-High
+189         0.12  0.5925465341  0.587710300 High-High High-High High-High
+190         0.09 -0.5778283376  0.423216328   Low-Low   Low-Low   Low-Low
+191         0.15  0.6047397416 -0.189028895 High-High High-High High-High
+192         0.13 -0.6264752107  0.481377266  Low-High  Low-High  Low-High
+193         0.49  0.7806041285  0.743673117  High-Low  High-Low  High-Low
+194         0.06  0.7562982431  0.436524468 High-High High-High High-High
+195         0.35 -0.2449844095 -0.751490292  Low-High  Low-High  Low-High
+196         0.36 -0.7499409600  0.347067034  Low-High  Low-High  Low-High
+197         0.36 -0.7470506873  1.656203568  Low-High  Low-High  Low-High
+198         0.37  0.2828119528 -0.618332542 High-High High-High High-High
+199         0.46  0.6512455828  0.438789874 High-High  High-Low High-High
+200         0.21 -0.1535564800 -0.150489942   Low-Low   Low-Low   Low-Low
+201         0.09 -0.5855731775  0.260742366   Low-Low   Low-Low   Low-Low
+202         0.42 -0.6296787000  0.429129138  Low-High  Low-High  Low-High
+203         0.39 -0.4793773798  0.451670707   Low-Low   Low-Low   Low-Low
+204         0.48  0.6167105460  0.209085260  High-Low  High-Low  High-Low
+205         0.49 -0.2856625611  0.061815647   Low-Low   Low-Low   Low-Low
+206         0.08 -0.4609971322 -0.614552012   Low-Low   Low-Low   Low-Low
+207         0.38 -0.1924721968 -0.159318440   Low-Low   Low-Low   Low-Low
+208         0.04 -0.7520929322  0.256188767   Low-Low   Low-Low   Low-Low
+209         0.04 -0.6372329402  0.469428428   Low-Low   Low-Low   Low-Low
+210         0.01 -0.1589082218 -0.754626408   Low-Low   Low-Low   Low-Low
+211         0.20 -0.5496027993  0.048435369   Low-Low  High-Low   Low-Low
+212         0.03 -0.0003561491 -0.624825664   Low-Low   Low-Low   Low-Low
+213         0.25  0.0917799457 -0.488615536  High-Low  High-Low  High-Low
+214         0.34 -0.4574688006 -0.586221055   Low-Low  High-Low   Low-Low
+215         0.04  0.1448562572 -0.560554188 High-High High-High High-High
+216         0.01  0.1756559187 -0.341553351 High-High High-High High-High
+217         0.35 -0.7215976354 -0.300349548   Low-Low  High-Low   Low-Low
+218         0.46 -0.6351837910  0.531154061   Low-Low   Low-Low   Low-Low
+219         0.26  0.3641292828 -0.165937637 High-High High-High High-High
+220         0.21  0.4413827664  0.031669308 High-High High-High High-High
+221         0.06 -1.2926291688  2.146710658   Low-Low   Low-Low   Low-Low
+222         0.05 -0.2190858406 -0.405738957   Low-Low   Low-Low   Low-Low
+223         0.35  0.5641679730  0.484290816  High-Low  High-Low  High-Low
+224         0.25 -0.5487334231 -0.471993386   Low-Low   Low-Low   Low-Low
+225         0.21 -0.3433777314  0.359334125   Low-Low   Low-Low   Low-Low
+226         0.05  0.2295086131 -0.518128565 High-High High-High High-High
+227         0.01  0.3521649053  0.235065897 High-High High-High High-High
+228         0.38 -0.3040970290 -0.173665618   Low-Low  High-Low   Low-Low
+229         0.19  0.6350308251 -0.377128451 High-High High-High High-High
+230         0.26  0.0136283047 -0.629990026 High-High High-High High-High
+231         0.01  0.1223715473 -0.246924166 High-High High-High High-High
+232         0.26  0.4945188816  0.782545909 High-High High-High High-High
+233         0.16 -0.8034303807  0.700268130   Low-Low   Low-Low   Low-Low
+234         0.12 -0.8236340340  1.131515498   Low-Low   Low-Low   Low-Low
+235         0.45 -0.6993304096  0.449201112   Low-Low   Low-Low   Low-Low
+236         0.03 -0.4753661627 -0.102848101   Low-Low   Low-Low   Low-Low
+237         0.27 -1.0089451362  0.986049672   Low-Low   Low-Low   Low-Low
+238         0.35  0.1592030132 -0.010421208 High-High High-High High-High
+239         0.42 -0.3650201697 -0.824278529  Low-High  Low-High  Low-High
+240         0.07  0.6707397171  0.458858842 High-High High-High High-High
+241         0.01 -0.7669607233  1.015758887   Low-Low   Low-Low   Low-Low
+242         0.01 -0.7387343542  0.433994918   Low-Low   Low-Low   Low-Low
+243         0.17  0.2591737293 -0.397987052 High-High High-High High-High
+244         0.19 -0.8370562423  0.191997628  Low-High  Low-High  Low-High
+245         0.03 -0.9508506394  1.891398290  Low-High  Low-High  Low-High
+246         0.02 -0.5079869992 -0.074618008   Low-Low   Low-Low   Low-Low
+247         0.12 -0.2586821862 -0.093492377   Low-Low   Low-Low   Low-Low
+248         0.01 -0.5695178724  0.589074544   Low-Low   Low-Low   Low-Low
+249         0.01 -0.1264205008 -0.422467736   Low-Low   Low-Low   Low-Low
+250         0.01 -0.4089697120 -0.261490956   Low-Low   Low-Low   Low-Low
+251         0.05 -0.9404577431  1.807671881   Low-Low   Low-Low   Low-Low
+252         0.02 -0.9311297574  0.306324026   Low-Low   Low-Low   Low-Low
+253         0.01 -0.4617229332  0.020794178   Low-Low   Low-Low   Low-Low
+254         0.01 -0.0892164713 -0.457481216   Low-Low   Low-Low   Low-Low
+255         0.37 -0.6261612577  0.254179030   Low-Low   Low-Low   Low-Low
+256         0.47  0.5310385331  0.287639612  High-Low  High-Low  High-Low
+257         0.03  0.5757358180 -0.006098234 High-High High-High High-High</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb70"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb70-1"><a href="#cb70-1" aria-hidden="true" tabindex="-1"></a>unique_data[<span class="dv">4</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>            VILLENG
+1      Qingcao Vil.
+2       Bao'an Vil.
+3      Chihkan Vil.
+4      Dacheng Vil.
+5     Chengbei Vil.
+6     Chengnan Vil.
+7        Fahua Vil.
+8       Hainan Vil.
+9       Guo'an Vil.
+10       Xixin Vil.
+11    Yuandong Vil.
+12  Chengzhong Vil.
+13   Chengdong Vil.
+14     Xuedong Vil.
+15     Dongwan Vil.
+16      Nanwan Vil.
+17     Kunshan Vil.
+18       Dawan Vil.
+19      Wuwang Vil.
+20      Ankang Vil.
+21      Xiqiao Vil.
+22    Wangliao Vil.
+23      Daqiao Vil.
+24    Dongqiao Vil.
+25       Wuzhu Vil.
+26    Wangxing Vil.
+27       Dazhi Vil.
+28    Chongwen Vil.
+29  Chongcheng Vil.
+30   Chongming Vil.
+31        Dafu Vil.
+32     Chongde Vil.
+33        Dade Vil.
+34    Chongxue Vil.
+35      Heping Vil.
+36   Chongshan Vil.
+37      Ludong Vil.
+38       Huwei Vil.
+39   Zhongxiao Vil.
+40     Yusheng Vil.
+41    Chongxin Vil.
+42     Deguang Vil.
+43      Fuxing Vil.
+44     Ziqiang Vil.
+45    Wensheng Vil.
+46        Fuyu Vil.
+47    Longshan Vil.
+48   Guansheng Vil.
+49     Xindong Vil.
+50     Fuqiang Vil.
+51     Quannan Vil.
+52   Dongsheng Vil.
+53     Dong'an Vil.
+54      Datong Vil.
+55      Weiguo Vil.
+56      Yunong Vil.
+57    Nansheng Vil.
+58    Chonghui Vil.
+59     Dongmen Vil.
+60     Zhongxi Vil.
+61    Dongming Vil.
+62      Weixia Vil.
+63   Dongguang Vil.
+64      Houjia Vil.
+65  Zhuangjing Vil.
+66    Xiaodong Vil.
+67       Daxue Vil.
+68     Chengda Vil.
+69    Gongyuan Vil.
+70    Zhonglou Vil.
+71     Xianbei Vil.
+72      Dafeng Vil.
+73      Dagang Vil.
+74    Zhengjue Vil.
+75        Dahe Vil.
+76   Chenggong Vil.
+77       Fotan Vil.
+78     Tong'an Vil.
+79     Song'an Vil.
+80    Yongning Vil.
+81       Xinan Vil.
+82      Xidong Vil.
+83       Xibei Vil.
+84      Nandou Vil.
+85      Nanhua Vil.
+86     Jiannan Vil.
+87    Mingxing Vil.
+88      Junnan Vil.
+89      Kainan Vil.
+90   Mingliang Vil.
+91     Kunshen Vil.
+92     Dazhong Vil.
+93   Guangming Vil.
+94       Funan Vil.
+95       Dalin Vil.
+96     Guozhai Vil.
+97    Tianliao Vil.
+98    Xinsheng Vil.
+99       Zhuxi Vil.
+100     Mingde Vil.
+101    Zaixing Vil.
+102   Zhangnan Vil.
+103     Jinhua Vil.
+104    Xinxing Vil.
+105     Wennan Vil.
+106   Xinchang Vil.
+107  Guangzhou Vil.
+108     Wenhua Vil.
+109     Xiding Vil.
+110    Haidian Vil.
+111     Xidong Vil.
+112      Xibei Vil.
+113       Xiqi Vil.
+114       Anfu Vil.
+115   Yantian  Vil.
+116  Fenghuang Vil.
+117    Gongqin Vil.
+118     Shalun Vil.
+119    Wenping Vil.
+120    Guoping Vil.
+121     Yuping Vil.
+122    Huaping Vil.
+123     Yiping Vil.
+124   Jianping Vil.
+125     Xingfu Vil.
+126   Shanglun Vil.
+127      Houbi Vil.
+128  Chenggong Vil.
+129      Renhe Vil.
+130     Ren'ai Vil.
+131      Rende Vil.
+132   Xingnong Vil.
+133  Shenggong Vil.
+134    Xintian Vil.
+135      Yijia Vil.
+136      Degao Vil.
+137      Renhe Vil.
+138  Zhongzhou Vil.
+139      Xiwan Vil.
+140    Jiading Vil.
+141   Yongkang Vil.
+142 Zhengqiang Vil.
+143    Yuguang Vil.
+144   Jincheng Vil.
+145  Shangding Vil.
+146     Fuxing Vil.
+147   Shenzhou Vil.
+148      Fuguo Vil.
+149      Sanhe Vil.
+150      Fuhua Vil.
+151     Erwang Vil.
+152    Dongzhi Vil.
+153      Da'en Vil.
+154       Xihu Vil.
+155    Ping'an Vil.
+156     Xixian Vil.
+157      Sicao Vil.
+158     Andong Vil.
+159  Yuanzhong Vil.
+160    Chengxi Vil.
+161   Diandong Vil.
+162    Xinshun Vil.
+163     Xinshu Vil.
+164   Yanxing  Vil.
+165      Haixi Vil.
+166     Dianxi Vil.
+167    Wenxian Vil.
+168     Longpu Vil.
+169   Yongming Vil.
+170   Yancheng Vil.
+171     Beihua Vil.
+172      Huade Vil.
+173       Fude Vil.
+174 Zhangsheng Vil.
+175  Zhangxing Vil.
+176     Daxing Vil.
+177    Daguang Vil.
+178    Xiaobei Vil.
+179  Shuang'an Vil.
+180      Liren Vil.
+181  Xiaoximen Vil.
+182     Duiyue Vil.
+183 Wutiaogang Vil.
+184     Nanmei Vil.
+185  Wangcheng Vil.
+186    Tianfei Vil.
+187 Chenghuang Vil.
+188       Xihe Vil.
+189     Beimen Vil.
+190   Yanzhou  Vil.
+191   Dongxing Vil.
+192  Zhongxing Vil.
+193     Heshun Vil.
+194     Lixing Vil.
+195   Wencheng Vil.
+196    Yuanbao Vil.
+197    Kaiyuan Vil.
+198    Chengde Vil.
+199    Yonghua Vil.
+200    Junwang Vil.
+201    Yanxing Vil.
+202    Yuanmei Vil.
+203   Nanchang Vil.
+204    Qiancao Vil.
+205     Fuqian Vil.
+206     Nanmen Vil.
+207     Hexing Vil.
+208     Beiwan Vil.
+209    Beixing Vil.
+210    Longtan Vil.
+211     Puyuan Vil.
+212     Sanmin Vil.
+213     Ren'ai Vil.
+214   Zhenxing Vil.
+215  Yongxiang Vil.
+216    Wenyuan Vil.
+217    Kaishan Vil.
+218    Daliang Vil.
+219    Yaowang Vil.
+220  Guangxian Vil.
+221     Erxing Vil.
+222      Dajia Vil.
+223      Renyi Vil.
+224       Tuku Vil.
+225      Taizi Vil.
+226       Anxi Vil.
+227      Da'an Vil.
+228       Anhe Vil.
+229    Lixiang Vil.
+230     Anqing Vil.
+231     Meihua Vil.
+232    Ding'an Vil.
+233     Anshun Vil.
+234    Zongtou Vil.
+235   Yuandian Vil.
+236     Donghe Vil.
+237    Guangfu Vil.
+238    Shengli Vil.
+239    Jianguo Vil.
+240      Liuhe Vil.
+241     Yuanxi Vil.
+242   Chang'an Vil.
+243   Zhonghua Vil.
+244  Chenggong Vil.
+245  Zhongxing Vil.
+246      Xishi Vil.
+247   Niaosong Vil.
+248   Xiangong Vil.
+249    Zhounan Vil.
+250      Budai Vil.
+251    Zhoubei Vil.
+252     Wennan Vil.
+253    Gongwen Vil.
+254    Nanxing Vil.
+255      Yizai Vil.
+256   Pingtong Vil.
+257    Haidong Vil.</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb72"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb72-1"><a href="#cb72-1" aria-hidden="true" tabindex="-1"></a>localMoran</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>               ii           eii       var_ii         z_ii         p_ii p_ii_sim
+1    1.4041686190 -7.975279e-02 6.179796e-01  1.887660261 5.907157e-02     0.02
+2    0.7566799711 -2.695340e-02 1.537089e-01  1.998772977 4.563292e-02     0.04
+3    0.0348658160  2.128719e-02 4.930900e-02  0.061149477 9.512402e-01     0.92
+4   -0.2144958309  2.470731e-02 8.376675e-02 -0.826477513 4.085333e-01     0.36
+5    1.4326694701  3.819232e-03 3.084337e-01  2.572798491 1.008799e-02     0.02
+6    1.2956349824  1.677889e-02 2.038934e-01  2.832174846 4.623256e-03     0.02
+7    0.3259959174 -2.920996e-04 9.604740e-02  1.052830157 2.924188e-01     0.32
+8    0.0205861619 -3.214834e-02 1.700651e-02  0.404377725 6.859350e-01     0.68
+9    0.4029021290  1.363357e-02 7.914002e-02  1.383729637 1.664413e-01     0.18
+10   0.0864318728  6.370220e-03 3.249889e-03  1.404398184 1.602003e-01     0.10
+11   0.5624332176  6.824033e-03 1.517689e-01  1.426191986 1.538129e-01     0.06
+12   1.4284211906 -9.462331e-03 3.691925e-01  2.366449520 1.795962e-02     0.02
+13   1.3707870217  8.216073e-02 2.321706e-01  2.674381612 7.486720e-03     0.02
+14   1.2267103076  2.351483e-02 4.023762e-01  1.896793543 5.785519e-02     0.02
+15   0.5777123718 -2.431520e-02 2.303853e-01  1.254264214 2.097460e-01     0.10
+16   0.3761302160  5.702499e-02 1.408497e-01  0.850268368 3.951759e-01     0.38
+17  -0.1083529980 -4.604679e-03 5.758444e-03 -1.367188785 1.715661e-01     0.16
+18   0.6387676536  3.038147e-03 1.510583e-01  1.635686673 1.019052e-01     0.10
+19   1.6954622322 -1.699376e-01 7.822037e-01  2.109172097 3.492973e-02     0.06
+20   0.3202209908 -1.364257e-02 5.726716e-02  1.395134858 1.629752e-01     0.20
+21   0.0034498159  1.019867e-03 2.492111e-05  0.486758280 6.264296e-01     0.68
+22  -0.2216117441  7.860882e-03 6.907701e-03 -2.760985539 5.762723e-03     0.06
+23   0.9460460404 -2.474282e-03 4.611467e-01  1.396777027 1.624806e-01     0.20
+24   0.3387501265  6.578480e-03 5.810963e-02  1.377966027 1.682138e-01     0.24
+25   0.9553398694  5.490369e-02 2.034560e-01  1.996262443 4.590536e-02     0.02
+26   1.1539477468  3.464007e-02 2.898921e-01  2.078889013 3.762755e-02     0.02
+27   0.0330966224  3.812626e-04 4.458019e-03  0.489982718 6.241461e-01     0.56
+28   0.1013126164 -1.017434e-02 1.626046e-02  0.874294202 3.819581e-01     0.40
+29  -0.2488530664  3.126714e-03 1.784645e-02 -1.886209000 5.926680e-02     0.12
+30  -0.1064160994 -3.844044e-03 1.351707e-02 -0.882242083 3.776459e-01     0.44
+31   0.2104012185 -3.607266e-02 7.572913e-02  0.895652243 3.704385e-01     0.36
+32   1.1833260437 -6.009556e-02 7.328540e-01  1.452478380 1.463686e-01     0.12
+33   0.2489016126  1.102545e-02 8.767574e-02  0.803361848 4.217656e-01     0.50
+34   0.7374847102 -4.821446e-02 8.463584e-02  2.700717330 6.919012e-03     0.04
+35   0.7387073151 -6.418863e-02 5.608623e-02  3.390245315 6.983011e-04     0.06
+36   1.7123360885 -8.638065e-02 2.776370e-01  3.413690374 6.408937e-04     0.02
+37  -0.0294895280  5.510372e-02 7.524844e-02 -0.308380552 7.577928e-01     0.78
+38   1.7750388884  5.931692e-02 5.132341e-01  2.394909720 1.662446e-02     0.02
+39   0.1004682421 -1.660350e-02 1.394683e-02  0.991321108 3.215288e-01     0.34
+40  -0.1688626282 -2.282346e-02 9.636563e-02 -0.470444374 6.380376e-01     0.66
+41   1.4043666317 -6.953689e-03 1.408982e-01  3.759870766 1.700012e-04     0.02
+42   0.5175225906 -1.357344e-02 1.391951e-01  1.423511925 1.545878e-01     0.18
+43   0.7985940575 -4.678399e-02 1.978563e-01  1.900535854 5.736283e-02     0.10
+44   2.4345708689 -3.217894e-02 5.069145e-01  3.464637117 5.309474e-04     0.02
+45  -0.0192914423  7.842113e-05 1.765935e-03 -0.460934455 6.448456e-01     0.54
+46  -0.0401899335 -1.634733e-03 2.840688e-04 -2.287553176 2.216356e-02     0.08
+47   0.0410952243  7.627448e-03 1.120456e-03  0.999837713 3.173891e-01     0.34
+48  -0.0287912211  6.307759e-03 1.374626e-02 -0.299365880 7.646609e-01     0.88
+49  -0.0240540084  6.503569e-02 7.100430e-02 -0.334337582 7.381248e-01     0.80
+50   1.9078948238  2.064408e-03 4.201427e-01  2.940260607 3.279363e-03     0.04
+51  -0.0339032030 -4.224642e-02 1.158963e-01  0.024507489 9.804478e-01     0.96
+52   0.4217875686  3.586413e-03 4.442875e-02  1.984052577 4.724998e-02     0.08
+53   0.0602204717 -6.617464e-03 1.685922e-01  0.162781226 8.706907e-01     0.98
+54  -0.0451105095 -5.351200e-03 2.734392e-03 -0.760341113 4.470507e-01     0.56
+55   0.0513808927  2.530750e-02 6.431728e-02  0.102809595 9.181141e-01     0.98
+56   0.7253086373  4.934287e-02 3.459899e-01  1.149193112 2.504764e-01     0.24
+57  -0.1064236242  1.248291e-02 3.103382e-02 -0.674975644 4.996912e-01     0.46
+58   0.0281981762 -2.185428e-02 1.138868e-02  0.469017096 6.390574e-01     0.64
+59   0.0272130350  1.808563e-02 1.272972e-01  0.025582207 9.795906e-01     1.00
+60   0.1700085354  1.358745e-02 3.108546e-02  0.887190022 3.749766e-01     0.40
+61   0.0724507804  9.027424e-03 1.468336e-02  0.523403289 6.006936e-01     0.54
+62   0.3619937045 -1.111617e-02 1.317808e-01  1.027804823 3.040416e-01     0.30
+63   0.0739534804  1.751898e-03 1.608924e-03  1.800026468 7.185646e-02     0.14
+64   0.5459091963  1.853381e-02 1.179331e-01  1.535684480 1.246158e-01     0.14
+65   0.6570304000  2.162435e-02 7.674233e-02  2.293685426 2.180857e-02     0.06
+66   0.0497501281  3.540777e-02 7.626924e-02  0.051933301 9.585818e-01     0.92
+67   0.0214868227  2.306071e-02 3.378937e-02 -0.008562159 9.931685e-01     0.86
+68   0.0243155385  2.188507e-04 1.026440e-02  0.237843107 8.120028e-01     0.88
+69  -0.0024638710 -4.133693e-04 9.469471e-05 -0.210715889 8.331090e-01     0.72
+70  -0.0380061912  5.249391e-04 2.954185e-02 -0.224177965 8.226188e-01     0.96
+71  -0.0314135633 -3.774014e-03 7.939385e-03 -0.310196946 7.564112e-01     0.72
+72   0.0315575759  6.738054e-03 2.974468e-02  0.143909258 8.855721e-01     0.86
+73  -0.0298218712  1.538638e-02 4.559694e-02 -0.211714153 8.323300e-01     0.92
+74   0.9379230875 -4.910192e-02 2.378997e-01  2.023630365 4.300820e-02     0.08
+75   0.1479322098  2.797630e-03 4.212806e-03  2.236068774 2.534727e-02     0.06
+76   0.1523439917  5.457846e-03 8.068534e-03  1.635247582 1.019972e-01     0.20
+77   0.4531098021 -5.783986e-02 1.166908e-01  1.495752604 1.347181e-01     0.08
+78   0.9283083061 -2.358030e-02 1.823701e-01  2.228996106 2.581416e-02     0.02
+79   0.8646213115  8.330811e-04 3.213897e-01  1.523671432 1.275908e-01     0.14
+80   1.0720294115 -1.833391e-01 3.261627e-01  2.198133521 2.793959e-02     0.02
+81   1.0795199112 -4.421176e-02 4.603353e-01  1.656248423 9.767152e-02     0.08
+82   0.2057583335  3.919963e-02 1.112916e-01  0.499270747 6.175887e-01     0.74
+83   0.7132140601 -1.712422e-02 1.950814e-01  1.653545312 9.821993e-02     0.04
+84   0.0187942801 -4.511355e-03 1.223509e-03  0.666280816 5.052316e-01     0.54
+85   0.5183949063 -7.427069e-02 1.047368e-01  1.831302605 6.705539e-02     0.14
+86   0.4524756857 -4.162083e-02 3.608520e-01  0.822521429 4.107802e-01     0.38
+87   2.3053380976 -4.949547e-02 5.040770e-01  3.316742559 9.107349e-04     0.02
+88   1.4371741060 -2.531268e-02 2.094734e-01  3.195416865 1.396290e-03     0.02
+89   0.2149580835  9.928216e-03 9.131678e-02  0.678487486 4.974627e-01     0.44
+90   3.5254581204 -1.905586e-01 1.023310e+00  3.673448652 2.392988e-04     0.02
+91   0.2221196069  1.143437e-02 1.064222e-01  0.645829751 5.183896e-01     0.62
+92  -0.0055555940 -1.096053e-03 3.989209e-05 -0.706068367 4.801456e-01     0.58
+93   0.4939905125  1.951937e-02 1.736639e-01  1.138557544 2.548877e-01     0.22
+94   1.2071449184 -1.317649e-01 7.348249e-01  1.561922168 1.183063e-01     0.18
+95   0.3764225023  6.209261e-02 9.118694e-02  1.040924785 2.979105e-01     0.30
+96   0.5600457078  9.351821e-02 1.622462e-01  1.158217172 2.467754e-01     0.24
+97   0.0715103150  2.912862e-03 1.181704e-03  1.995508540 4.598744e-02     0.10
+98   0.3737626643  5.368416e-02 4.067737e-02  1.587011533 1.125100e-01     0.10
+99   0.6408785894 -1.741634e-03 1.276240e-01  1.798821804 7.204687e-02     0.06
+100 -0.2636451776 -1.852539e-02 1.138066e-01 -0.726598616 4.674719e-01     0.48
+101  0.2594825291 -3.544526e-02 3.944063e-02  1.485059307 1.375281e-01     0.16
+102 -0.4081508560 -2.152182e-02 8.117363e-02 -1.357022272 1.747741e-01     0.24
+103  0.2199743529  2.289122e-02 5.399108e-01  0.268218334 7.885313e-01     0.68
+104  0.0497991106 -3.467999e-03 2.870330e-03  0.994244503 3.201038e-01     0.30
+105  0.0051955830 -5.179616e-04 1.956154e-03  0.129182639 8.972131e-01     0.84
+106  0.0019738078 -3.630286e-04 2.251494e-04  0.155737407 8.762400e-01     0.86
+107 -0.0164186501  3.303724e-03 4.380703e-04 -0.942295897 3.460412e-01     0.32
+108  0.0046827568  9.194780e-05 1.120041e-04  0.433782717 6.644462e-01     0.80
+109  0.4473926945  1.883629e-02 1.439664e-01  1.129476878 2.586967e-01     0.28
+110  2.9543242965  1.170655e-01 8.999106e-01  2.990881993 2.781730e-03     0.02
+111  1.6289304760 -2.521623e-02 3.333681e-01  2.864916913 4.171187e-03     0.04
+112  0.0828241054 -5.472619e-03 1.544192e-02  0.710548787 4.773639e-01     0.40
+113  4.8767053129  5.344396e-02 1.279590e+00  4.263884251 2.009035e-05     0.02
+114  4.6218380075 -9.478309e-02 2.921748e+00  2.759367745 5.791332e-03     0.02
+115  0.6758342546 -1.254461e-02 1.848786e-01  1.600973942 1.093827e-01     0.08
+116  0.2456622321  1.724615e-02 6.431692e-01  0.284815791 7.757853e-01     0.68
+117  1.0496828535 -1.027519e-01 7.543773e-01  1.326850713 1.845581e-01     0.16
+118  1.3868453537  2.234948e-02 3.529854e-01  2.296644917 2.163903e-02     0.04
+119 -0.0035365467 -6.280247e-04 2.829276e-05 -0.546807836 5.845108e-01     0.66
+120  0.0808216240  1.330890e-02 3.573828e-03  1.129324639 2.587609e-01     0.26
+121 -0.0313260099  2.811773e-03 3.602627e-03 -0.568755536 5.695221e-01     0.58
+122  0.0349258729 -1.112247e-02 7.867190e-03  0.519163602 6.036467e-01     0.72
+123  0.0574960186  1.867794e-02 2.113492e-02  0.267013827 7.894585e-01     0.96
+124  0.0541357481 -5.439991e-04 9.016628e-03  0.575843422 5.647210e-01     0.64
+125  2.8553236617  1.516912e-02 1.275742e+00  2.514551875 1.191838e-02     0.06
+126  0.6813598292 -5.932807e-02 1.285657e-01  2.065725493 3.885441e-02     0.04
+127  0.2747144328  1.135895e-02 5.900965e-02  1.084128717 2.783077e-01     0.22
+128  0.1208831223 -3.687680e-03 3.064020e-03  2.250455724 2.442003e-02     0.02
+129  0.5101147224 -9.419236e-02 3.375944e-01  1.040064027 2.983102e-01     0.36
+130  0.3399024237 -4.148955e-02 2.756268e-01  0.726458583 4.675577e-01     0.52
+131  0.1387393883  1.799293e-02 2.308713e-02  0.794674767 4.268027e-01     0.44
+132  0.7357378072  2.022650e-02 1.112825e-01  2.144880775 3.196238e-02     0.02
+133  0.7820007507 -1.653096e-02 1.177643e-01  2.326941009 1.996841e-02     0.02
+134 -0.1960324785 -4.549748e-02 3.634317e-01 -0.249704339 8.028160e-01     0.64
+135 -0.0298220984  2.838690e-02 5.773501e-02 -0.242253765 8.085835e-01     0.64
+136  0.3905418249 -3.386964e-02 7.367147e-02  1.563642451 1.179016e-01     0.18
+137  0.4350509936  1.269639e-02 6.988859e-02  1.597622167 1.101271e-01     0.20
+138  0.8562428785 -3.517736e-03 4.983420e-01  1.217906054 2.232597e-01     0.24
+139  0.2163005994 -1.846795e-02 1.714845e-02  1.792782263 7.300775e-02     0.04
+140  0.3018807053 -1.656716e-02 1.418287e-02  2.673968081 7.495959e-03     0.04
+141  0.0622948287  3.884528e-03 3.089687e-02  0.332301422 7.396617e-01     0.90
+142 -0.1258967654  5.261134e-02 1.039456e-01 -0.553675010 5.798013e-01     0.74
+143  0.8293507380 -1.261981e-01 3.944673e-01  1.521414015 1.281560e-01     0.08
+144  0.4480644555 -3.765180e-02 8.114866e-02  1.705069036 8.818155e-02     0.08
+145 -0.0930553582  1.045498e-02 6.676188e-03 -1.266833247 2.052149e-01     0.22
+146 -0.0063677108 -1.385806e-03 5.922550e-03 -0.064735281 9.483848e-01     0.94
+147 -0.1425041564 -5.321304e-02 2.124851e-01 -0.193706406 8.464058e-01     0.84
+148  0.4006108725  1.617597e-02 2.420713e-01  0.781359919 4.345908e-01     0.42
+149 -0.0410320362  1.123224e-03 7.564946e-05 -4.846730288 1.255129e-06     0.02
+150  3.6518729032 -3.683247e-01 4.212581e+00  1.958724085 5.014511e-02     0.10
+151  2.3020091759 -8.098562e-02 5.313409e-01  3.269162083 1.078665e-03     0.02
+152  0.0740172287 -5.414394e-03 4.879457e-03  1.137123665 2.554866e-01     0.26
+153 -0.0376205146 -3.436379e-03 1.366080e-03 -0.924882380 3.550271e-01     0.40
+154  0.0045907548 -3.029616e-03 9.439359e-04  0.248030379 8.041109e-01     0.74
+155  0.0011378386  7.587827e-03 1.014338e-02 -0.064042394 9.489365e-01     0.82
+156  0.0077743176 -1.817178e-02 9.145586e-03  0.271310275 7.861524e-01     0.84
+157  0.9269778733  5.486811e-02 4.455482e-01  1.306543347 1.913678e-01     0.18
+158 -0.0333506607 -8.303951e-03 2.881521e-03 -0.466594668 6.407899e-01     0.56
+159  0.6293067769  3.715454e-02 1.117495e-01  1.771375319 7.649831e-02     0.02
+160  1.3383784501  4.629822e-02 7.017598e-01  1.542393725 1.229779e-01     0.04
+161  0.7297815268 -8.695435e-03 1.140928e-01  2.186290584 2.879435e-02     0.04
+162  0.0013183090 -1.685736e-04 1.827746e-06  1.099812646 2.714138e-01     0.26
+163  0.9803082017 -4.075318e-03 3.958197e-01  1.564644319 1.176663e-01     0.04
+164 -0.0053250210  4.255714e-04 1.474067e-04 -0.473646121 6.357523e-01     0.72
+165 -0.0783722094 -1.236308e-02 7.220661e-02 -0.245649318 8.059537e-01     0.64
+166  0.9178664149 -3.920660e-02 1.796848e-01  2.257820326 2.395686e-02     0.02
+167  0.6703504785 -1.477023e-02 2.960949e-01  1.259075172 2.080032e-01     0.18
+168  0.5718617233 -1.095834e-02 1.617297e-01  1.449237642 1.472712e-01     0.08
+169  0.6363437973 -8.716413e-03 1.911886e-01  1.475262442 1.401420e-01     0.10
+170  1.9204878717  7.117219e-03 3.145690e-01  3.411466930 6.461434e-04     0.02
+171  0.0148393281 -1.079039e-02 3.407108e-03  0.439087329 6.605983e-01     0.66
+172 -0.4000484291  9.689614e-03 1.834963e-02 -3.024771768 2.488208e-03     0.02
+173 -0.0666391093 -6.564353e-03 4.517011e-03 -0.893853724 3.714002e-01     0.44
+174 -0.0526772989  1.049672e-02 2.333598e-02 -0.413547609 6.792054e-01     0.74
+175 -0.1260639916 -3.366062e-03 2.206955e-02 -0.825924713 4.088468e-01     0.48
+176  0.0271380703  4.239784e-03 5.891073e-03  0.298336078 7.654467e-01     0.70
+177 -0.0775141727 -4.846986e-04 1.283026e-03 -2.150498762 3.151578e-02     0.06
+178  0.3172413361  3.128147e-04 2.632448e-01  0.617705485 5.367695e-01     0.54
+179 -0.1235476465 -3.448223e-02 2.946831e-02 -0.518837672 6.038739e-01     0.58
+180  0.0319285048  4.419825e-03 1.332702e-02  0.238288580 8.116573e-01     0.80
+181 -0.0955910327  2.857783e-02 2.930349e-02 -0.725359079 4.682318e-01     0.56
+182  0.1192203787  9.703337e-03 1.388097e-01  0.293948916 7.687969e-01     0.66
+183 -0.0483284310 -2.400040e-04 1.484220e-03 -1.248220761 2.119502e-01     0.26
+184  0.0151969515  2.475793e-03 6.877053e-03  0.153400043 8.780828e-01     0.94
+185  0.1082395752 -8.318822e-03 1.129821e-01  0.346767778 7.287658e-01     0.80
+186 -0.4063479188  4.702676e-02 1.671929e-01 -1.108787712 2.675218e-01     0.24
+187 -0.0396516269  2.389544e-03 4.380314e-03 -0.635217089 5.252868e-01     0.60
+188  0.0868985086  3.530133e-03 2.106312e-02  0.574433748 5.656743e-01     0.56
+189  1.9902367787  2.289989e-01 2.478070e+00  1.118822556 2.632158e-01     0.24
+190  0.1694618237  1.493020e-03 1.955483e-02  1.201162091 2.296883e-01     0.18
+191  0.0477743558  4.310242e-03 1.910885e-03  0.994291146 3.200811e-01     0.30
+192 -0.3714651359 -1.598156e-03 1.065541e-01 -1.133079593 2.571808e-01     0.26
+193 -0.0091811560  5.895379e-03 5.525534e-03 -0.202821693 8.392744e-01     0.98
+194  0.0088989492 -6.562988e-04 3.093523e-05  1.717968820 8.580230e-02     0.12
+195 -0.0390193495 -5.691871e-04 8.662490e-03 -0.413120547 6.795183e-01     0.70
+196 -0.0060704079  1.859512e-02 7.591561e-03 -0.283090263 7.771076e-01     0.72
+197 -0.0099732538  2.829528e-02 2.614346e-02 -0.236679332 8.129056e-01     0.72
+198  0.0187910619 -1.224652e-02 1.313337e-02  0.270831866 7.865204e-01     0.74
+199  0.0002325839  5.693855e-04 3.550640e-04 -0.017873961 9.857394e-01     0.92
+200  0.1990758806 -1.871196e-02 7.576575e-02  0.791219814 4.288157e-01     0.42
+201  0.4585731333 -5.328991e-03 1.421704e-01  1.230330447 2.185734e-01     0.18
+202 -0.0163677001 -7.405059e-03 1.863212e-02 -0.065660609 9.476480e-01     0.84
+203  0.0370871637 -3.441968e-03 2.023665e-02  0.284903624 7.757180e-01     0.78
+204 -0.0034679427  2.443646e-03 3.476707e-03 -0.100258261 9.201393e-01     0.96
+205  0.0120583675  7.234565e-03 5.166689e-02  0.021221857 9.830687e-01     0.98
+206  0.0933553646 -2.864725e-02 9.416549e-03  1.257254682 2.086614e-01     0.16
+207  0.0181832048 -1.093627e-02 6.792602e-03  0.353317716 7.238503e-01     0.76
+208  0.8275005694 -1.487025e-02 2.687413e-01  1.624935300 1.041763e-01     0.08
+209  0.5978246999 -1.126250e-02 1.572100e-01  1.536170628 1.244965e-01     0.08
+210  0.5381242333 -2.422650e-02 5.754813e-02  2.344183790 1.906877e-02     0.02
+211  0.0622547391  7.760824e-03 4.047902e-03  0.856511161 3.917151e-01     0.40
+212  0.9943248833  6.873207e-02 2.227457e-01  1.961170447 4.985914e-02     0.06
+213 -0.0172633814  2.279444e-03 7.687184e-04 -0.704861365 4.808965e-01     0.50
+214  0.0285283234 -3.502190e-03 2.999836e-03  0.584810505 5.586751e-01     0.68
+215  0.4043285015 -1.094774e-01 8.383236e-02  1.774570518 7.596883e-02     0.08
+216  0.3090050709 -1.446117e-02 8.991692e-03  3.411208371 6.467565e-04     0.02
+217  0.0135231309 -2.105082e-04 5.859606e-04  0.567350457 5.704761e-01     0.70
+218  0.0905530342  4.998607e-02 6.402898e-02  0.160318734 8.726300e-01     0.92
+219  0.3196898020  6.192044e-02 2.500666e-01  0.515470026 6.062246e-01     0.52
+220  0.0516000128 -9.063321e-03 6.193862e-03  0.770806744 4.408215e-01     0.42
+221  0.7469552415  5.642719e-02 3.136202e-01  1.233046122 2.175586e-01     0.12
+222  0.8428307411  1.250938e-01 2.108675e-01  1.563005319 1.180513e-01     0.10
+223 -0.5297934587 -1.918974e-01 7.064452e-01 -0.402016472 6.876719e-01     0.70
+224  0.4397933582 -5.878587e-02 3.652570e-01  0.824963864 4.093921e-01     0.50
+225  0.1737498257  2.661985e-02 3.770772e-02  0.757680371 4.486424e-01     0.42
+226  0.3627978705  4.101443e-03 4.550398e-02  1.681521197 9.266172e-02     0.10
+227  2.2107462050  5.494008e-03 2.198879e-01  4.702811575 2.566032e-06     0.02
+228  0.0003792680 -1.358209e-04 2.034739e-06  0.361100255 7.180245e-01     0.76
+229  0.5342601475  2.439164e-02 2.143081e-01  1.101384338 2.707294e-01     0.38
+230  0.2072099213  1.344017e-03 8.110582e-02  0.722867045 4.697616e-01     0.52
+231  0.4081696435 -4.799778e-03 1.931943e-02  2.971124043 2.967119e-03     0.02
+232  0.1540827167 -1.158885e-02 6.988806e-02  0.626680928 5.308684e-01     0.52
+233  0.4183527174  4.049033e-02 1.639346e-01  0.933250734 3.506905e-01     0.32
+234  0.4821163804  4.627536e-02 1.713202e-01  1.052988920 2.923461e-01     0.24
+235  0.0103567029 -8.218459e-02 1.410289e-01  0.246423140 8.053547e-01     0.90
+236  0.5468357072 -5.671771e-02 1.143758e-01  1.784632134 7.432101e-02     0.06
+237  0.5561316456 -9.001603e-03 7.227733e-01  0.664736955 5.062188e-01     0.54
+238  0.4657111793 -2.918939e-02 9.743750e-01  0.501366009 6.161136e-01     0.70
+239 -0.0452923636  2.595017e-03 9.909313e-02 -0.152124547 8.790887e-01     0.84
+240  0.5390210324  7.850363e-02 7.595562e-02  1.670960134 9.472955e-02     0.14
+241  0.7830717226 -2.223115e-02 9.021347e-02  2.681165153 7.336630e-03     0.02
+242  0.8650188512 -1.667342e-02 1.102726e-01  2.655114065 7.928160e-03     0.02
+243  0.2832149673 -2.463386e-02 8.628031e-02  1.048049148 2.946160e-01     0.34
+244 -0.3914303365 -2.631722e-02 1.487747e-01 -0.946592086 3.438467e-01     0.38
+245 -0.2968965334  7.666306e-03 1.721062e-02 -2.321553122 2.025701e-02     0.06
+246  0.7360297149 -8.424762e-02 2.255546e-01  1.727168957 8.413732e-02     0.04
+247  0.4397445176 -6.661630e-02 1.436134e-01  1.336172778 1.814928e-01     0.24
+248  1.2367741196  1.779324e-02 1.353979e-01  3.312766981 9.237791e-04     0.02
+249  0.7268376236 -1.819876e-03 9.095702e-02  2.416046665 1.569005e-02     0.02
+250  0.7686104780  4.335211e-02 1.700833e-01  1.758579024 7.864904e-02     0.02
+251  0.9001643889 -3.721599e-02 3.179736e-01  1.662341797 9.644426e-02     0.10
+252  0.8791610418 -4.197250e-02 3.487758e-01  1.559729954 1.188237e-01     0.04
+253  1.1177075741  4.887696e-02 2.627201e-01  2.085269520 3.704484e-02     0.02
+254  1.1831675957 -2.532560e-02 1.769822e-01  2.872627818 4.070734e-03     0.02
+255  0.1524054778  6.535181e-03 1.178442e-01  0.424925517 6.708910e-01     0.74
+256 -0.0024576240 -1.486027e-03 1.479213e-04 -0.079886045 9.363279e-01     0.94
+257  0.3194404247  1.740347e-02 1.513980e-02  2.454708870 1.409987e-02     0.06
+    p_folded_sim      skewness     kurtosis      mean    median     pysal
+1           0.01 -0.8617148587  1.150333532   Low-Low   Low-Low   Low-Low
+2           0.02 -0.5897378352  0.315083849   Low-Low   Low-Low   Low-Low
+3           0.46  0.0879434711 -0.564100652 High-High High-High High-High
+4           0.18 -0.5387235588  0.031417934  Low-High  Low-High  Low-High
+5           0.01 -0.3773048990 -0.037365166   Low-Low   Low-Low   Low-Low
+6           0.01 -0.6551054935  0.657355940   Low-Low   Low-Low   Low-Low
+7           0.16 -0.8394714779  0.749307894   Low-Low   Low-Low   Low-Low
+8           0.34 -0.2106086277 -0.517962448   Low-Low   Low-Low   Low-Low
+9           0.09  0.5198679787  0.524754230 High-High High-High High-High
+10          0.05 -0.7218975719  0.141151564   Low-Low  High-Low   Low-Low
+11          0.03 -1.1146899653  2.108400304   Low-Low   Low-Low   Low-Low
+12          0.01 -0.3721543244 -0.132175031   Low-Low   Low-Low   Low-Low
+13          0.01 -0.5050671318 -0.220406423   Low-Low   Low-Low   Low-Low
+14          0.01 -0.6811224867  0.508028432   Low-Low   Low-Low   Low-Low
+15          0.05 -1.0248290507  0.379900431   Low-Low   Low-Low   Low-Low
+16          0.19 -0.5947129815  0.573362853   Low-Low   Low-Low   Low-Low
+17          0.08  0.1751417973 -0.631854300  High-Low  High-Low  High-Low
+18          0.05 -0.5462248724  0.094487828   Low-Low   Low-Low   Low-Low
+19          0.03  0.8927681208  1.699702215 High-High High-High High-High
+20          0.10  0.9702650972  2.280384530 High-High High-High High-High
+21          0.34  0.5547188722  0.798546403 High-High High-High High-High
+22          0.03 -0.8370404275  1.311442923  Low-High  Low-High  Low-High
+23          0.10  0.6129396988 -0.017401846 High-High High-High High-High
+24          0.12  0.8703919340  1.174981832 High-High High-High High-High
+25          0.01 -0.6405721326  0.625557596   Low-Low   Low-Low   Low-Low
+26          0.01 -1.1994562157  3.037356680   Low-Low   Low-Low   Low-Low
+27          0.28  0.5671806423  0.868970833 High-High High-High High-High
+28          0.20  0.5302714815  0.529499154 High-High High-High High-High
+29          0.06 -0.5202923455  0.277050545  Low-High  Low-High  Low-High
+30          0.22 -0.0268210808 -0.308421671  Low-High  Low-High  Low-High
+31          0.18  0.1464697990 -0.256359695   Low-Low   Low-Low   Low-Low
+32          0.06  0.5777045879  0.516625369 High-High High-High High-High
+33          0.25 -0.5622576801  0.240068296   Low-Low   Low-Low   Low-Low
+34          0.02  0.1087380658  0.293050006 High-High High-High High-High
+35          0.03  0.9636515337  2.202303498 High-High High-High High-High
+36          0.01  0.2476861590 -0.441951303 High-High High-High High-High
+37          0.39 -0.6319319950  1.196984675  Low-High  Low-High  Low-High
+38          0.01  0.2306115609 -0.410567751 High-High High-High High-High
+39          0.17  0.3460043685 -0.169453185 High-High High-High High-High
+40          0.33 -0.2948450075 -0.833920795  Low-High  Low-High  Low-High
+41          0.01  0.3513447352  0.033673083 High-High High-High High-High
+42          0.09  0.8534504301  0.976316854 High-High High-High High-High
+43          0.05  0.6044104609  0.156786454 High-High High-High High-High
+44          0.01  0.2153922978 -0.353622154 High-High High-High High-High
+45          0.27 -0.7125956346  0.278667204  Low-High High-High  Low-High
+46          0.04 -0.6898889915  1.139513138  Low-High High-High  Low-High
+47          0.17  1.0696959450  3.364549345 High-High High-High High-High
+48          0.44  0.8300633830  0.617213305  High-Low  High-Low  High-Low
+49          0.40  0.6452292641  0.412425275  High-Low  High-Low  High-Low
+50          0.02  0.6264891755  0.292216333 High-High High-High High-High
+51          0.48  0.4052163198 -0.389730916  High-Low  High-Low  High-Low
+52          0.04  0.4413567994 -0.039380578 High-High High-High High-High
+53          0.49 -0.6283331805  0.432013974   Low-Low   Low-Low   Low-Low
+54          0.28 -0.0280007534 -0.594289809  High-Low  High-Low  High-Low
+55          0.49 -0.6565734671  0.161557111   Low-Low   Low-Low   Low-Low
+56          0.12  0.7485805313  1.144955047 High-High High-High High-High
+57          0.23 -0.6432730318 -0.058227500  Low-High  Low-High  Low-High
+58          0.32  0.4426904093 -0.087853007 High-High High-High High-High
+59          0.50 -0.7687266029  1.214478844   Low-Low   Low-Low   Low-Low
+60          0.20 -0.2845230642 -0.385691937   Low-Low   Low-Low   Low-Low
+61          0.27  0.3999427803  0.160749742 High-High High-High High-High
+62          0.15 -0.6428276032  1.111616678   Low-Low   Low-Low   Low-Low
+63          0.07  0.5866083187 -0.030421368 High-High High-High High-High
+64          0.07  1.1315392479  2.812281244 High-High High-High High-High
+65          0.03  0.3347746097  0.353990137 High-High High-High High-High
+66          0.46  0.3982755668 -0.326558481 High-High High-High High-High
+67          0.43 -0.6849297082  0.588627823   Low-Low   Low-Low   Low-Low
+68          0.44 -0.5443961423  0.044951049   Low-Low   Low-Low   Low-Low
+69          0.36 -0.5230915588 -0.104425379  Low-High High-High  Low-High
+70          0.48  0.6200034324 -0.197360054  High-Low  High-Low  High-Low
+71          0.36 -0.6031503649  0.080779260  Low-High  Low-High  Low-High
+72          0.43  0.4980989642 -0.324687446 High-High High-High High-High
+73          0.46  0.8105295960  0.801431812  High-Low  High-Low  High-Low
+74          0.04  0.3385276100  0.222092024 High-High High-High High-High
+75          0.03  0.7071891555  0.500551001 High-High High-High High-High
+76          0.10  0.4400253973 -0.522816478 High-High High-High High-High
+77          0.04 -0.9180690626  1.119250735   Low-Low   Low-Low   Low-Low
+78          0.01 -0.3117196425 -0.164584698   Low-Low   Low-Low   Low-Low
+79          0.07 -0.4509349072 -0.279620443   Low-Low   Low-Low   Low-Low
+80          0.01 -0.5602961833 -0.240176226   Low-Low   Low-Low   Low-Low
+81          0.04 -0.6730818920  0.118696103   Low-Low   Low-Low   Low-Low
+82          0.37 -0.4695788866  0.278828856   Low-Low   Low-Low   Low-Low
+83          0.02 -0.7028561157  0.145784956   Low-Low   Low-Low   Low-Low
+84          0.27  0.4445278721 -0.350904644 High-High High-High High-High
+85          0.07  0.4216255168 -0.386795314 High-High High-High High-High
+86          0.19  0.7169370770  1.069900111 High-High High-High High-High
+87          0.01  0.1414778101 -0.535425959 High-High High-High High-High
+88          0.01  0.2667781866 -0.115920848 High-High High-High High-High
+89          0.22  0.8450953642  0.436281024 High-High High-High High-High
+90          0.01  0.8466430293  0.692429750 High-High High-High High-High
+91          0.31 -0.7092883273 -0.128343886   Low-Low   Low-Low   Low-Low
+92          0.29  0.2865989715 -0.527822123  High-Low  High-Low  High-Low
+93          0.11  0.5054536800  0.333266910 High-High High-High High-High
+94          0.09  0.8457927306  0.943934370 High-High High-High High-High
+95          0.15 -0.5955457954  0.104007776   Low-Low   Low-Low   Low-Low
+96          0.12  1.0282984334  2.749442863 High-High High-High High-High
+97          0.05  0.3002485828 -0.300386055 High-High High-High High-High
+98          0.05 -0.3496908370 -0.227346337   Low-Low   Low-Low   Low-Low
+99          0.03 -0.4125661764 -0.142718104   Low-Low   Low-Low   Low-Low
+100         0.24 -0.1374239978 -0.552648654  Low-High  Low-High  Low-High
+101         0.08  0.3087723989 -0.451337911 High-High High-High High-High
+102         0.12 -0.2499212575 -0.126083458  Low-High  Low-High  Low-High
+103         0.34  0.7011008203  0.044566005 High-High High-High High-High
+104         0.15  0.8347996193  1.326669422 High-High High-High High-High
+105         0.42  0.2387675381 -0.707460797 High-High High-High High-High
+106         0.43  0.8564818030  2.264366890 High-High High-High High-High
+107         0.16 -0.1296812991 -0.289954122  Low-High High-High  Low-High
+108         0.40 -1.1602685648  1.984802978   Low-Low  High-Low   Low-Low
+109         0.14  0.6875450510  1.029905497 High-High High-High High-High
+110         0.01  0.6868717451 -0.004296619 High-High High-High High-High
+111         0.02  1.4146693273  5.446321073 High-High High-High High-High
+112         0.20  0.7123343206  0.698086789 High-High High-High High-High
+113         0.01  0.2251147303 -0.659007282 High-High High-High High-High
+114         0.01  0.3258231334 -0.381251821 High-High High-High High-High
+115         0.04 -0.5461570896  0.335102210   Low-Low   Low-Low   Low-Low
+116         0.34  0.6554160784  0.402139454 High-High High-High High-High
+117         0.08 -0.8095782785  0.271653374   Low-Low   Low-Low   Low-Low
+118         0.02 -0.5144011569  0.543777104   Low-Low   Low-Low   Low-Low
+119         0.33  0.5397095332 -0.012992073  High-Low  High-Low  High-Low
+120         0.13 -0.4504223504  0.387853944   Low-Low   Low-Low   Low-Low
+121         0.29  0.7517356505  0.338784043  High-Low  High-Low  High-Low
+122         0.36 -0.6823107085 -0.073926941   Low-Low   Low-Low   Low-Low
+123         0.48 -1.2797733217  2.879341453   Low-Low   Low-Low   Low-Low
+124         0.32 -0.1577735465 -0.532158157   Low-Low   Low-Low   Low-Low
+125         0.03  0.5708501946 -0.076586643 High-High High-High High-High
+126         0.02 -0.6419610125  0.243424001   Low-Low   Low-Low   Low-Low
+127         0.11 -0.7554351188  0.179302156   Low-Low   Low-Low   Low-Low
+128         0.01 -0.7373114741  1.923628345   Low-Low   Low-Low   Low-Low
+129         0.18 -0.0796119170 -0.351010970   Low-Low   Low-Low   Low-Low
+130         0.26 -0.8635930628  0.490875768   Low-Low   Low-Low   Low-Low
+131         0.22  0.2790339539 -0.399311210 High-High High-High High-High
+132         0.01 -0.8307859842  1.230757976   Low-Low   Low-Low   Low-Low
+133         0.01 -0.3153677241  0.452407579   Low-Low   Low-Low   Low-Low
+134         0.32 -1.2354961954  2.821562509  Low-High  Low-High  Low-High
+135         0.32 -1.1815804092  2.532472344  Low-High  Low-High  Low-High
+136         0.09  0.5598583310 -0.303431176 High-High High-High High-High
+137         0.10  0.5344283604  0.107347098 High-High High-High High-High
+138         0.12 -0.6224304489 -0.007205270   Low-Low   Low-Low   Low-Low
+139         0.02 -0.5247726361 -0.173272028   Low-Low   Low-Low   Low-Low
+140         0.02  0.2990403078  0.116823600 High-High High-High High-High
+141         0.45 -0.8272727689  0.415537603   Low-Low   Low-Low   Low-Low
+142         0.37  0.9418590186  0.315988934  High-Low  High-Low  High-Low
+143         0.04 -0.4761120190 -0.306259820   Low-Low   Low-Low   Low-Low
+144         0.04 -0.6658387073  0.675595856   Low-Low   Low-Low   Low-Low
+145         0.11  0.2453544253 -0.588495272  Low-High  Low-High  Low-High
+146         0.47 -0.1182913584 -0.285157383  Low-High  Low-High  Low-High
+147         0.42 -0.4062008892  0.394856332  Low-High  Low-High  Low-High
+148         0.21  0.4099512571 -0.133666475 High-High High-High High-High
+149         0.01 -0.3894904923 -0.241626948  Low-High High-High  Low-High
+150         0.05  0.3394845025 -0.362997545 High-High High-High High-High
+151         0.01  0.3931969263  0.058313527 High-High High-High High-High
+152         0.13 -0.0270407301 -0.496648580   Low-Low   Low-Low   Low-Low
+153         0.20  0.4875426353  0.214312348  High-Low  High-Low  High-Low
+154         0.37  0.4458071585 -0.378233321 High-High High-High High-High
+155         0.41 -0.4730361319  0.061986773   Low-Low   Low-Low   Low-Low
+156         0.42 -0.0602556657 -0.698437566   Low-Low   Low-Low   Low-Low
+157         0.09 -0.8921020955  1.276684799   Low-Low   Low-Low   Low-Low
+158         0.28 -0.6440952738  0.667642036  Low-High High-High  Low-High
+159         0.01 -1.1745230297  2.746178662   Low-Low   Low-Low   Low-Low
+160         0.02 -0.9109987599  0.602801478   Low-Low   Low-Low   Low-Low
+161         0.02 -0.0848432711 -0.186652462   Low-Low   Low-Low   Low-Low
+162         0.13 -0.5107734420  0.815455729   Low-Low  High-Low   Low-Low
+163         0.02 -1.2106382723  1.633091952   Low-Low   Low-Low   Low-Low
+164         0.36  1.1971378618  2.099689493  High-Low  High-Low  High-Low
+165         0.32 -0.9488980788  0.927458505  Low-High  Low-High  Low-High
+166         0.01 -0.4420604386 -0.277663217   Low-Low   Low-Low   Low-Low
+167         0.09 -0.5003748783  0.226203389   Low-Low   Low-Low   Low-Low
+168         0.04 -0.4148899252 -0.559737896   Low-Low   Low-Low   Low-Low
+169         0.05 -0.5223491853 -0.303695658   Low-Low   Low-Low   Low-Low
+170         0.01  0.4766447825  0.713403194 High-High High-High High-High
+171         0.33  0.0881258028 -0.709345861 High-High High-High High-High
+172         0.01 -0.3236410421 -0.733145486  Low-High  Low-High  Low-High
+173         0.22 -0.5137140836 -0.355860760  Low-High  Low-High  Low-High
+174         0.37 -0.0497906679 -0.726204936  Low-High  Low-High  Low-High
+175         0.24 -0.4874335581 -0.531359717  Low-High  Low-High  Low-High
+176         0.35  0.5708720142  0.074038000 High-High High-High High-High
+177         0.03 -0.2987637230 -0.253698039  Low-High High-High  Low-High
+178         0.27  0.7270598483  1.146230473 High-High High-High High-High
+179         0.29 -0.1199313993 -0.525226495  Low-High  Low-High  Low-High
+180         0.40  0.4113045673  0.052701304 High-High High-High High-High
+181         0.28  0.4464245842  0.840094417  High-Low  High-Low  High-Low
+182         0.33  1.1926569898  1.972574826 High-High High-High High-High
+183         0.13 -0.5928847943  0.567915485  Low-High High-High  Low-High
+184         0.47  0.4176528705  0.423595796 High-High High-High High-High
+185         0.40 -0.5236426766  0.046078423   Low-Low   Low-Low   Low-Low
+186         0.12  0.4507126998  0.025130850  High-Low  High-Low  High-Low
+187         0.30  0.1700009912 -0.486438534  High-Low  High-Low  High-Low
+188         0.28  0.1694259178 -0.250351837 High-High High-High High-High
+189         0.12  0.5925465341  0.587710300 High-High High-High High-High
+190         0.09 -0.5778283376  0.423216328   Low-Low   Low-Low   Low-Low
+191         0.15  0.6047397416 -0.189028895 High-High High-High High-High
+192         0.13 -0.6264752107  0.481377266  Low-High  Low-High  Low-High
+193         0.49  0.7806041285  0.743673117  High-Low  High-Low  High-Low
+194         0.06  0.7562982431  0.436524468 High-High High-High High-High
+195         0.35 -0.2449844095 -0.751490292  Low-High  Low-High  Low-High
+196         0.36 -0.7499409600  0.347067034  Low-High  Low-High  Low-High
+197         0.36 -0.7470506873  1.656203568  Low-High  Low-High  Low-High
+198         0.37  0.2828119528 -0.618332542 High-High High-High High-High
+199         0.46  0.6512455828  0.438789874 High-High  High-Low High-High
+200         0.21 -0.1535564800 -0.150489942   Low-Low   Low-Low   Low-Low
+201         0.09 -0.5855731775  0.260742366   Low-Low   Low-Low   Low-Low
+202         0.42 -0.6296787000  0.429129138  Low-High  Low-High  Low-High
+203         0.39 -0.4793773798  0.451670707   Low-Low   Low-Low   Low-Low
+204         0.48  0.6167105460  0.209085260  High-Low  High-Low  High-Low
+205         0.49 -0.2856625611  0.061815647   Low-Low   Low-Low   Low-Low
+206         0.08 -0.4609971322 -0.614552012   Low-Low   Low-Low   Low-Low
+207         0.38 -0.1924721968 -0.159318440   Low-Low   Low-Low   Low-Low
+208         0.04 -0.7520929322  0.256188767   Low-Low   Low-Low   Low-Low
+209         0.04 -0.6372329402  0.469428428   Low-Low   Low-Low   Low-Low
+210         0.01 -0.1589082218 -0.754626408   Low-Low   Low-Low   Low-Low
+211         0.20 -0.5496027993  0.048435369   Low-Low  High-Low   Low-Low
+212         0.03 -0.0003561491 -0.624825664   Low-Low   Low-Low   Low-Low
+213         0.25  0.0917799457 -0.488615536  High-Low  High-Low  High-Low
+214         0.34 -0.4574688006 -0.586221055   Low-Low  High-Low   Low-Low
+215         0.04  0.1448562572 -0.560554188 High-High High-High High-High
+216         0.01  0.1756559187 -0.341553351 High-High High-High High-High
+217         0.35 -0.7215976354 -0.300349548   Low-Low  High-Low   Low-Low
+218         0.46 -0.6351837910  0.531154061   Low-Low   Low-Low   Low-Low
+219         0.26  0.3641292828 -0.165937637 High-High High-High High-High
+220         0.21  0.4413827664  0.031669308 High-High High-High High-High
+221         0.06 -1.2926291688  2.146710658   Low-Low   Low-Low   Low-Low
+222         0.05 -0.2190858406 -0.405738957   Low-Low   Low-Low   Low-Low
+223         0.35  0.5641679730  0.484290816  High-Low  High-Low  High-Low
+224         0.25 -0.5487334231 -0.471993386   Low-Low   Low-Low   Low-Low
+225         0.21 -0.3433777314  0.359334125   Low-Low   Low-Low   Low-Low
+226         0.05  0.2295086131 -0.518128565 High-High High-High High-High
+227         0.01  0.3521649053  0.235065897 High-High High-High High-High
+228         0.38 -0.3040970290 -0.173665618   Low-Low  High-Low   Low-Low
+229         0.19  0.6350308251 -0.377128451 High-High High-High High-High
+230         0.26  0.0136283047 -0.629990026 High-High High-High High-High
+231         0.01  0.1223715473 -0.246924166 High-High High-High High-High
+232         0.26  0.4945188816  0.782545909 High-High High-High High-High
+233         0.16 -0.8034303807  0.700268130   Low-Low   Low-Low   Low-Low
+234         0.12 -0.8236340340  1.131515498   Low-Low   Low-Low   Low-Low
+235         0.45 -0.6993304096  0.449201112   Low-Low   Low-Low   Low-Low
+236         0.03 -0.4753661627 -0.102848101   Low-Low   Low-Low   Low-Low
+237         0.27 -1.0089451362  0.986049672   Low-Low   Low-Low   Low-Low
+238         0.35  0.1592030132 -0.010421208 High-High High-High High-High
+239         0.42 -0.3650201697 -0.824278529  Low-High  Low-High  Low-High
+240         0.07  0.6707397171  0.458858842 High-High High-High High-High
+241         0.01 -0.7669607233  1.015758887   Low-Low   Low-Low   Low-Low
+242         0.01 -0.7387343542  0.433994918   Low-Low   Low-Low   Low-Low
+243         0.17  0.2591737293 -0.397987052 High-High High-High High-High
+244         0.19 -0.8370562423  0.191997628  Low-High  Low-High  Low-High
+245         0.03 -0.9508506394  1.891398290  Low-High  Low-High  Low-High
+246         0.02 -0.5079869992 -0.074618008   Low-Low   Low-Low   Low-Low
+247         0.12 -0.2586821862 -0.093492377   Low-Low   Low-Low   Low-Low
+248         0.01 -0.5695178724  0.589074544   Low-Low   Low-Low   Low-Low
+249         0.01 -0.1264205008 -0.422467736   Low-Low   Low-Low   Low-Low
+250         0.01 -0.4089697120 -0.261490956   Low-Low   Low-Low   Low-Low
+251         0.05 -0.9404577431  1.807671881   Low-Low   Low-Low   Low-Low
+252         0.02 -0.9311297574  0.306324026   Low-Low   Low-Low   Low-Low
+253         0.01 -0.4617229332  0.020794178   Low-Low   Low-Low   Low-Low
+254         0.01 -0.0892164713 -0.457481216   Low-Low   Low-Low   Low-Low
+255         0.37 -0.6261612577  0.254179030   Low-Low   Low-Low   Low-Low
+256         0.47  0.5310385331  0.287639612  High-Low  High-Low  High-Low
+257         0.03  0.5757358180 -0.006098234 High-High High-High High-High</code></pre>
+</div>
+</div>
+<section id="joining-local-moran-results-and-wm_q" class="level3">
+<h3 class="anchored" data-anchor-id="joining-local-moran-results-and-wm_q">joining Local moran results and wm_q</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb74"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb74-1"><a href="#cb74-1" aria-hidden="true" tabindex="-1"></a>localMoranData <span class="ot">&lt;-</span> <span class="fu">cbind</span>(test3_sf[<span class="dv">2</span>], localMoran)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Code chunk below list the content of the local Moran matrix derived by using printCoefMat - foolowed slides (Chao10)</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb75"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb75-1"><a href="#cb75-1" aria-hidden="true" tabindex="-1"></a>fips <span class="ot">&lt;-</span>localMoranData<span class="sc">$</span>town</span>
+<span id="cb75-2"><a href="#cb75-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb75-3"><a href="#cb75-3" aria-hidden="true" tabindex="-1"></a><span class="fu">printCoefmat</span>(<span class="fu">data.frame</span>(</span>
+<span id="cb75-4"><a href="#cb75-4" aria-hidden="true" tabindex="-1"></a>  localMoran, </span>
+<span id="cb75-5"><a href="#cb75-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">row.names=</span>localMoranData<span class="sc">$</span>town),</span>
+<span id="cb75-6"><a href="#cb75-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">check.names=</span><span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                             ii         eii      var_ii        z_ii        p_ii
+D06 Qingcao Vil.     1.4042e+00 -7.9753e-02  6.1798e-01  1.8877e+00  5.9072e-02
+D32 Bao'an Vil.      7.5668e-01 -2.6953e-02  1.5371e-01  1.9988e+00  4.5633e-02
+D08 Chihkan Vil.     3.4866e-02  2.1287e-02  4.9309e-02  6.1149e-02  9.5124e-01
+D02 Dacheng Vil.    -2.1450e-01  2.4707e-02  8.3767e-02 -8.2648e-01  4.0853e-01
+D06 Chengbei Vil.    1.4327e+00  3.8192e-03  3.0843e-01  2.5728e+00  1.0088e-02
+D06 Chengnan Vil.    1.2956e+00  1.6779e-02  2.0389e-01  2.8322e+00  4.6233e-03
+D08 Fahua Vil.       3.2600e-01 -2.9210e-04  9.6047e-02  1.0528e+00  2.9242e-01
+D06 Hainan Vil.      2.0586e-02 -3.2148e-02  1.7007e-02  4.0438e-01  6.8593e-01
+D06 Guo'an Vil.      4.0290e-01  1.3634e-02  7.9140e-02  1.3837e+00  1.6644e-01
+D06 Xixin Vil.       8.6432e-02  6.3702e-03  3.2499e-03  1.4044e+00  1.6020e-01
+D06 Yuandong Vil.    5.6243e-01  6.8240e-03  1.5177e-01  1.4262e+00  1.5381e-01
+D06 Chengzhong Vil.  1.4284e+00 -9.4623e-03  3.6919e-01  2.3664e+00  1.7960e-02
+D06 Chengdong Vil.   1.3708e+00  8.2161e-02  2.3217e-01  2.6744e+00  7.4867e-03
+D06 Xuedong Vil.     1.2267e+00  2.3515e-02  4.0238e-01  1.8968e+00  5.7855e-02
+D39 Dongwan Vil.     5.7771e-01 -2.4315e-02  2.3039e-01  1.2543e+00  2.0975e-01
+D39 Nanwan Vil.      3.7613e-01  5.7025e-02  1.4085e-01  8.5027e-01  3.9518e-01
+D39 Kunshan Vil.    -1.0835e-01 -4.6047e-03  5.7584e-03 -1.3672e+00  1.7157e-01
+D39 Dawan Vil.       6.3877e-01  3.0381e-03  1.5106e-01  1.6357e+00  1.0191e-01
+D39 Wuwang Vil.      1.6955e+00 -1.6994e-01  7.8220e-01  2.1092e+00  3.4930e-02
+D39 Ankang Vil.      3.2022e-01 -1.3643e-02  5.7267e-02  1.3951e+00  1.6298e-01
+D39 Xiqiao Vil.      3.4498e-03  1.0199e-03  2.4921e-05  4.8676e-01  6.2643e-01
+D39 Wangliao Vil.   -2.2161e-01  7.8609e-03  6.9077e-03 -2.7610e+00  5.7627e-03
+D39 Daqiao Vil.      9.4605e-01 -2.4743e-03  4.6115e-01  1.3968e+00  1.6248e-01
+D39 Dongqiao Vil.    3.3875e-01  6.5785e-03  5.8110e-02  1.3780e+00  1.6821e-01
+D39 Wuzhu Vil.       9.5534e-01  5.4904e-02  2.0346e-01  1.9963e+00  4.5905e-02
+D39 Wangxing Vil.    1.1539e+00  3.4640e-02  2.8989e-01  2.0789e+00  3.7628e-02
+D01 Dazhi Vil.       3.3097e-02  3.8126e-04  4.4580e-03  4.8998e-01  6.2415e-01
+D01 Chongwen Vil.    1.0131e-01 -1.0174e-02  1.6260e-02  8.7429e-01  3.8196e-01
+D01 Chongcheng Vil. -2.4885e-01  3.1267e-03  1.7846e-02 -1.8862e+00  5.9267e-02
+D01 Chongming Vil.  -1.0642e-01 -3.8440e-03  1.3517e-02 -8.8224e-01  3.7765e-01
+D01 Dafu Vil.        2.1040e-01 -3.6073e-02  7.5729e-02  8.9565e-01  3.7044e-01
+D01 Chongde Vil.     1.1833e+00 -6.0096e-02  7.3285e-01  1.4525e+00  1.4637e-01
+D01 Dade Vil.        2.4890e-01  1.1025e-02  8.7676e-02  8.0336e-01  4.2177e-01
+D01 Chongxue Vil.    7.3748e-01 -4.8214e-02  8.4636e-02  2.7007e+00  6.9190e-03
+D01 Heping Vil.      7.3871e-01 -6.4189e-02  5.6086e-02  3.3902e+00  6.9830e-04
+D01 Chongshan Vil.   1.7123e+00 -8.6381e-02  2.7764e-01  3.4137e+00  6.4089e-04
+D01 Ludong Vil.     -2.9490e-02  5.5104e-02  7.5248e-02 -3.0838e-01  7.5779e-01
+D01 Huwei Vil.       1.7750e+00  5.9317e-02  5.1323e-01  2.3949e+00  1.6624e-02
+D01 Zhongxiao Vil.   1.0047e-01 -1.6604e-02  1.3947e-02  9.9132e-01  3.2153e-01
+D01 Yusheng Vil.    -1.6886e-01 -2.2823e-02  9.6366e-02 -4.7044e-01  6.3804e-01
+D01 Chongxin Vil.    1.4044e+00 -6.9537e-03  1.4090e-01  3.7599e+00  1.7000e-04
+D01 Deguang Vil.     5.1752e-01 -1.3573e-02  1.3920e-01  1.4235e+00  1.5459e-01
+D01 Fuxing Vil.      7.9859e-01 -4.6784e-02  1.9786e-01  1.9005e+00  5.7363e-02
+D01 Ziqiang Vil.     2.4346e+00 -3.2179e-02  5.0691e-01  3.4646e+00  5.3095e-04
+D01 Wensheng Vil.   -1.9291e-02  7.8421e-05  1.7659e-03 -4.6093e-01  6.4485e-01
+D01 Fuyu Vil.       -4.0190e-02 -1.6347e-03  2.8407e-04 -2.2876e+00  2.2164e-02
+D01 Longshan Vil.    4.1095e-02  7.6274e-03  1.1205e-03  9.9984e-01  3.1739e-01
+D01 Guansheng Vil.  -2.8791e-02  6.3078e-03  1.3746e-02 -2.9937e-01  7.6466e-01
+D01 Xindong Vil.    -2.4054e-02  6.5036e-02  7.1004e-02 -3.3434e-01  7.3812e-01
+D01 Fuqiang Vil.     1.9079e+00  2.0644e-03  4.2014e-01  2.9403e+00  3.2794e-03
+D01 Quannan Vil.    -3.3903e-02 -4.2246e-02  1.1590e-01  2.4507e-02  9.8045e-01
+D01 Dongsheng Vil.   4.2179e-01  3.5864e-03  4.4429e-02  1.9841e+00  4.7250e-02
+D01 Dong'an Vil.     6.0220e-02 -6.6175e-03  1.6859e-01  1.6278e-01  8.7069e-01
+D01 Datong Vil.     -4.5111e-02 -5.3512e-03  2.7344e-03 -7.6034e-01  4.4705e-01
+D01 Weiguo Vil.      5.1381e-02  2.5308e-02  6.4317e-02  1.0281e-01  9.1811e-01
+D01 Yunong Vil.      7.2531e-01  4.9343e-02  3.4599e-01  1.1492e+00  2.5048e-01
+D01 Nansheng Vil.   -1.0642e-01  1.2483e-02  3.1034e-02 -6.7498e-01  4.9969e-01
+D01 Chonghui Vil.    2.8198e-02 -2.1854e-02  1.1389e-02  4.6902e-01  6.3906e-01
+D01 Dongmen Vil.     2.7213e-02  1.8086e-02  1.2730e-01  2.5582e-02  9.7959e-01
+D01 Zhongxi Vil.     1.7001e-01  1.3587e-02  3.1085e-02  8.8719e-01  3.7498e-01
+D01 Dongming Vil.    7.2451e-02  9.0274e-03  1.4683e-02  5.2340e-01  6.0069e-01
+D01 Weixia Vil.      3.6199e-01 -1.1116e-02  1.3178e-01  1.0278e+00  3.0404e-01
+D01 Dongguang Vil.   7.3953e-02  1.7519e-03  1.6089e-03  1.8000e+00  7.1856e-02
+D01 Houjia Vil.      5.4591e-01  1.8534e-02  1.1793e-01  1.5357e+00  1.2462e-01
+D01 Zhuangjing Vil.  6.5703e-01  2.1624e-02  7.6742e-02  2.2937e+00  2.1809e-02
+D01 Xiaodong Vil.    4.9750e-02  3.5408e-02  7.6269e-02  5.1933e-02  9.5858e-01
+D01 Daxue Vil.       2.1487e-02  2.3061e-02  3.3789e-02 -8.5622e-03  9.9317e-01
+D01 Chengda Vil.     2.4316e-02  2.1885e-04  1.0264e-02  2.3784e-01  8.1200e-01
+D04 Gongyuan Vil.   -2.4639e-03 -4.1337e-04  9.4695e-05 -2.1072e-01  8.3311e-01
+D04 Zhonglou Vil.   -3.8006e-02  5.2494e-04  2.9542e-02 -2.2418e-01  8.2262e-01
+D04 Xianbei Vil.    -3.1414e-02 -3.7740e-03  7.9394e-03 -3.1020e-01  7.5641e-01
+D04 Dafeng Vil.      3.1558e-02  6.7381e-03  2.9745e-02  1.4391e-01  8.8557e-01
+D04 Dagang Vil.     -2.9822e-02  1.5386e-02  4.5597e-02 -2.1171e-01  8.3233e-01
+D04 Zhengjue Vil.    9.3792e-01 -4.9102e-02  2.3790e-01  2.0236e+00  4.3008e-02
+D04 Dahe Vil.        1.4793e-01  2.7976e-03  4.2128e-03  2.2361e+00  2.5347e-02
+D04 Chenggong Vil.   1.5234e-01  5.4578e-03  8.0685e-03  1.6352e+00  1.0200e-01
+D02 Fotan Vil.       4.5311e-01 -5.7840e-02  1.1669e-01  1.4958e+00  1.3472e-01
+D02 Tong'an Vil.     9.2831e-01 -2.3580e-02  1.8237e-01  2.2290e+00  2.5814e-02
+D02 Song'an Vil.     8.6462e-01  8.3308e-04  3.2139e-01  1.5237e+00  1.2759e-01
+D02 Yongning Vil.    1.0720e+00 -1.8334e-01  3.2616e-01  2.1981e+00  2.7940e-02
+D02 Xinan Vil.       1.0795e+00 -4.4212e-02  4.6034e-01  1.6562e+00  9.7672e-02
+D02 Xidong Vil.      2.0576e-01  3.9200e-02  1.1129e-01  4.9927e-01  6.1759e-01
+D02 Xibei Vil.       7.1321e-01 -1.7124e-02  1.9508e-01  1.6535e+00  9.8220e-02
+D02 Nandou Vil.      1.8794e-02 -4.5114e-03  1.2235e-03  6.6628e-01  5.0523e-01
+D02 Nanhua Vil.      5.1839e-01 -7.4271e-02  1.0474e-01  1.8313e+00  6.7055e-02
+D02 Jiannan Vil.     4.5248e-01 -4.1621e-02  3.6085e-01  8.2252e-01  4.1078e-01
+D02 Mingxing Vil.    2.3053e+00 -4.9495e-02  5.0408e-01  3.3167e+00  9.1073e-04
+D02 Junnan Vil.      1.4372e+00 -2.5313e-02  2.0947e-01  3.1954e+00  1.3963e-03
+D02 Kainan Vil.      2.1496e-01  9.9282e-03  9.1317e-02  6.7849e-01  4.9746e-01
+D02 Mingliang Vil.   3.5255e+00 -1.9056e-01  1.0233e+00  3.6734e+00  2.3930e-04
+D02 Kunshen Vil.     2.2212e-01  1.1434e-02  1.0642e-01  6.4583e-01  5.1839e-01
+D02 Dazhong Vil.    -5.5556e-03 -1.0961e-03  3.9892e-05 -7.0607e-01  4.8015e-01
+D02 Guangming Vil.   4.9399e-01  1.9519e-02  1.7366e-01  1.1386e+00  2.5489e-01
+D02 Funan Vil.       1.2071e+00 -1.3176e-01  7.3482e-01  1.5619e+00  1.1831e-01
+D02 Dalin Vil.       3.7642e-01  6.2093e-02  9.1187e-02  1.0409e+00  2.9791e-01
+D02 Guozhai Vil.     5.6005e-01  9.3518e-02  1.6225e-01  1.1582e+00  2.4678e-01
+D02 Tianliao Vil.    7.1510e-02  2.9129e-03  1.1817e-03  1.9955e+00  4.5987e-02
+D02 Xinsheng Vil.    3.7376e-01  5.3684e-02  4.0677e-02  1.5870e+00  1.1251e-01
+D02 Zhuxi Vil.       6.4088e-01 -1.7416e-03  1.2762e-01  1.7988e+00  7.2047e-02
+D02 Mingde Vil.     -2.6365e-01 -1.8525e-02  1.1381e-01 -7.2660e-01  4.6747e-01
+D02 Zaixing Vil.     2.5948e-01 -3.5445e-02  3.9441e-02  1.4851e+00  1.3753e-01
+D02 Zhangnan Vil.   -4.0815e-01 -2.1522e-02  8.1174e-02 -1.3570e+00  1.7477e-01
+D02 Jinhua Vil.      2.1997e-01  2.2891e-02  5.3991e-01  2.6822e-01  7.8853e-01
+D02 Xinxing Vil.     4.9799e-02 -3.4680e-03  2.8703e-03  9.9424e-01  3.2010e-01
+D02 Wennan Vil.      5.1956e-03 -5.1796e-04  1.9562e-03  1.2918e-01  8.9721e-01
+D02 Xinchang Vil.    1.9738e-03 -3.6303e-04  2.2515e-04  1.5574e-01  8.7624e-01
+D02 Guangzhou Vil.  -1.6419e-02  3.3037e-03  4.3807e-04 -9.4230e-01  3.4604e-01
+D02 Wenhua Vil.      4.6828e-03  9.1948e-05  1.1200e-04  4.3378e-01  6.6445e-01
+D06 Xiding Vil.      4.4739e-01  1.8836e-02  1.4397e-01  1.1295e+00  2.5870e-01
+D06 Haidian Vil.     2.9543e+00  1.1707e-01  8.9991e-01  2.9909e+00  2.7817e-03
+D06 Xidong Vil.      1.6289e+00 -2.5216e-02  3.3337e-01  2.8649e+00  4.1712e-03
+D06 Xibei Vil.       8.2824e-02 -5.4726e-03  1.5442e-02  7.1055e-01  4.7736e-01
+D06 Xiqi Vil.        4.8767e+00  5.3444e-02  1.2796e+00  4.2639e+00  2.0090e-05
+D06 Anfu Vil.        4.6218e+00 -9.4783e-02  2.9217e+00  2.7594e+00  5.7913e-03
+D06 Yantian  Vil.    6.7583e-01 -1.2545e-02  1.8488e-01  1.6010e+00  1.0938e-01
+D06 Fenghuang Vil.   2.4566e-01  1.7246e-02  6.4317e-01  2.8482e-01  7.7579e-01
+D06 Gongqin Vil.     1.0497e+00 -1.0275e-01  7.5438e-01  1.3269e+00  1.8456e-01
+D06 Shalun Vil.      1.3868e+00  2.2349e-02  3.5299e-01  2.2966e+00  2.1639e-02
+D07 Wenping Vil.    -3.5365e-03 -6.2802e-04  2.8293e-05 -5.4681e-01  5.8451e-01
+D07 Guoping Vil.     8.0822e-02  1.3309e-02  3.5738e-03  1.1293e+00  2.5876e-01
+D07 Yuping Vil.     -3.1326e-02  2.8118e-03  3.6026e-03 -5.6876e-01  5.6952e-01
+D07 Huaping Vil.     3.4926e-02 -1.1122e-02  7.8672e-03  5.1916e-01  6.0365e-01
+D07 Yiping Vil.      5.7496e-02  1.8678e-02  2.1135e-02  2.6701e-01  7.8946e-01
+D07 Jianping Vil.    5.4136e-02 -5.4400e-04  9.0166e-03  5.7584e-01  5.6472e-01
+D06 Xingfu Vil.      2.8553e+00  1.5169e-02  1.2757e+00  2.5146e+00  1.1918e-02
+D32 Shanglun Vil.    6.8136e-01 -5.9328e-02  1.2857e-01  2.0657e+00  3.8854e-02
+D32 Houbi Vil.       2.7471e-01  1.1359e-02  5.9010e-02  1.0841e+00  2.7831e-01
+D32 Chenggong Vil.   1.2088e-01 -3.6877e-03  3.0640e-03  2.2505e+00  2.4420e-02
+D32 Renhe Vil.       5.1011e-01 -9.4192e-02  3.3759e-01  1.0401e+00  2.9831e-01
+D32 Ren'ai Vil.      3.3990e-01 -4.1490e-02  2.7563e-01  7.2646e-01  4.6756e-01
+D32 Rende Vil.       1.3874e-01  1.7993e-02  2.3087e-02  7.9467e-01  4.2680e-01
+D02 Xingnong Vil.    7.3574e-01  2.0226e-02  1.1128e-01  2.1449e+00  3.1962e-02
+D02 Shenggong Vil.   7.8200e-01 -1.6531e-02  1.1776e-01  2.3269e+00  1.9968e-02
+D32 Xintian Vil.    -1.9603e-01 -4.5497e-02  3.6343e-01 -2.4970e-01  8.0282e-01
+D32 Yijia Vil.      -2.9822e-02  2.8387e-02  5.7735e-02 -2.4225e-01  8.0858e-01
+D01 Degao Vil.       3.9054e-01 -3.3870e-02  7.3671e-02  1.5636e+00  1.1790e-01
+D01 Renhe Vil.       4.3505e-01  1.2696e-02  6.9889e-02  1.5976e+00  1.1013e-01
+D32 Zhongzhou Vil.   8.5624e-01 -3.5177e-03  4.9834e-01  1.2179e+00  2.2326e-01
+D39 Xiwan Vil.       2.1630e-01 -1.8468e-02  1.7148e-02  1.7928e+00  7.3008e-02
+D39 Jiading Vil.     3.0188e-01 -1.6567e-02  1.4183e-02  2.6740e+00  7.4960e-03
+D39 Yongkang Vil.    6.2295e-02  3.8845e-03  3.0897e-02  3.3230e-01  7.3966e-01
+D39 Zhengqiang Vil. -1.2590e-01  5.2611e-02  1.0395e-01 -5.5368e-01  5.7980e-01
+D07 Yuguang Vil.     8.2935e-01 -1.2620e-01  3.9447e-01  1.5214e+00  1.2816e-01
+D07 Jincheng Vil.    4.4806e-01 -3.7652e-02  8.1149e-02  1.7051e+00  8.8182e-02
+D39 Shangding Vil.  -9.3055e-02  1.0455e-02  6.6762e-03 -1.2668e+00  2.0521e-01
+D39 Fuxing Vil.     -6.3677e-03 -1.3858e-03  5.9226e-03 -6.4735e-02  9.4838e-01
+D39 Shenzhou Vil.   -1.4250e-01 -5.3213e-02  2.1249e-01 -1.9371e-01  8.4641e-01
+D39 Fuguo Vil.       4.0061e-01  1.6176e-02  2.4207e-01  7.8136e-01  4.3459e-01
+D39 Sanhe Vil.      -4.1032e-02  1.1232e-03  7.5650e-05 -4.8467e+00  1.2551e-06
+D39 Fuhua Vil.       3.6519e+00 -3.6832e-01  4.2126e+00  1.9587e+00  5.0145e-02
+D39 Erwang Vil.      2.3020e+00 -8.0986e-02  5.3134e-01  3.2692e+00  1.0787e-03
+D01 Dongzhi Vil.     7.4017e-02 -5.4144e-03  4.8795e-03  1.1371e+00  2.5549e-01
+D02 Da'en Vil.      -3.7621e-02 -3.4364e-03  1.3661e-03 -9.2488e-01  3.5503e-01
+D08 Xihu Vil.        4.5908e-03 -3.0296e-03  9.4394e-04  2.4803e-01  8.0411e-01
+D07 Ping'an Vil.     1.1378e-03  7.5878e-03  1.0143e-02 -6.4042e-02  9.4894e-01
+D08 Xixian Vil.      7.7743e-03 -1.8172e-02  9.1456e-03  2.7131e-01  7.8615e-01
+D06 Sicao Vil.       9.2698e-01  5.4868e-02  4.4555e-01  1.3065e+00  1.9137e-01
+D06 Andong Vil.     -3.3351e-02 -8.3040e-03  2.8815e-03 -4.6659e-01  6.4079e-01
+D06 Yuanzhong Vil.   6.2931e-01  3.7155e-02  1.1175e-01  1.7714e+00  7.6498e-02
+D06 Chengxi Vil.     1.3384e+00  4.6298e-02  7.0176e-01  1.5424e+00  1.2298e-01
+D06 Diandong Vil.    7.2978e-01 -8.6954e-03  1.1409e-01  2.1863e+00  2.8794e-02
+D06 Xinshun Vil.     1.3183e-03 -1.6857e-04  1.8277e-06  1.0998e+00  2.7141e-01
+D39 Xinshu Vil.      9.8031e-01 -4.0753e-03  3.9582e-01  1.5646e+00  1.1767e-01
+D39 Yanxing  Vil.   -5.3250e-03  4.2557e-04  1.4741e-04 -4.7365e-01  6.3575e-01
+D06 Haixi Vil.      -7.8372e-02 -1.2363e-02  7.2207e-02 -2.4565e-01  8.0595e-01
+D06 Dianxi Vil.      9.1787e-01 -3.9207e-02  1.7968e-01  2.2578e+00  2.3957e-02
+D32 Wenxian Vil.     6.7035e-01 -1.4770e-02  2.9609e-01  1.2591e+00  2.0800e-01
+D39 Longpu Vil.      5.7186e-01 -1.0958e-02  1.6173e-01  1.4492e+00  1.4727e-01
+D39 Yongming Vil.    6.3634e-01 -8.7164e-03  1.9119e-01  1.4753e+00  1.4014e-01
+D02 Yancheng Vil.    1.9205e+00  7.1172e-03  3.1457e-01  3.4115e+00  6.4614e-04
+D04 Beihua Vil.      1.4839e-02 -1.0790e-02  3.4071e-03  4.3909e-01  6.6060e-01
+D04 Huade Vil.      -4.0005e-01  9.6896e-03  1.8350e-02 -3.0248e+00  2.4882e-03
+D04 Fude Vil.       -6.6639e-02 -6.5644e-03  4.5170e-03 -8.9385e-01  3.7140e-01
+D04 Zhangsheng Vil. -5.2677e-02  1.0497e-02  2.3336e-02 -4.1355e-01  6.7921e-01
+D04 Zhangxing Vil.  -1.2606e-01 -3.3661e-03  2.2070e-02 -8.2592e-01  4.0885e-01
+D04 Daxing Vil.      2.7138e-02  4.2398e-03  5.8911e-03  2.9834e-01  7.6545e-01
+D04 Daguang Vil.    -7.7514e-02 -4.8470e-04  1.2830e-03 -2.1505e+00  3.1516e-02
+D04 Xiaobei Vil.     3.1724e-01  3.1281e-04  2.6324e-01  6.1771e-01  5.3677e-01
+D04 Shuang'an Vil.  -1.2355e-01 -3.4482e-02  2.9468e-02 -5.1884e-01  6.0387e-01
+D04 Liren Vil.       3.1929e-02  4.4198e-03  1.3327e-02  2.3829e-01  8.1166e-01
+D08 Xiaoximen Vil.  -9.5591e-02  2.8578e-02  2.9303e-02 -7.2536e-01  4.6823e-01
+D08 Duiyue Vil.      1.1922e-01  9.7033e-03  1.3881e-01  2.9395e-01  7.6880e-01
+D08 Wutiaogang Vil. -4.8328e-02 -2.4000e-04  1.4842e-03 -1.2482e+00  2.1195e-01
+D08 Nanmei Vil.      1.5197e-02  2.4758e-03  6.8771e-03  1.5340e-01  8.7808e-01
+D07 Wangcheng Vil.   1.0824e-01 -8.3188e-03  1.1298e-01  3.4677e-01  7.2877e-01
+D07 Tianfei Vil.    -4.0635e-01  4.7027e-02  1.6719e-01 -1.1088e+00  2.6752e-01
+D08 Chenghuang Vil. -3.9652e-02  2.3895e-03  4.3803e-03 -6.3522e-01  5.2529e-01
+D08 Xihe Vil.        8.6899e-02  3.5301e-03  2.1063e-02  5.7443e-01  5.6567e-01
+D04 Beimen Vil.      1.9902e+00  2.2900e-01  2.4781e+00  1.1188e+00  2.6322e-01
+D39 Yanzhou  Vil.    1.6946e-01  1.4930e-03  1.9555e-02  1.2012e+00  2.2969e-01
+D04 Dongxing Vil.    4.7774e-02  4.3102e-03  1.9109e-03  9.9429e-01  3.2008e-01
+D04 Zhongxing Vil.  -3.7147e-01 -1.5982e-03  1.0655e-01 -1.1331e+00  2.5718e-01
+D04 Heshun Vil.     -9.1812e-03  5.8954e-03  5.5255e-03 -2.0282e-01  8.3927e-01
+D04 Lixing Vil.      8.8989e-03 -6.5630e-04  3.0935e-05  1.7180e+00  8.5802e-02
+D04 Wencheng Vil.   -3.9019e-02 -5.6919e-04  8.6625e-03 -4.1312e-01  6.7952e-01
+D04 Yuanbao Vil.    -6.0704e-03  1.8595e-02  7.5916e-03 -2.8309e-01  7.7711e-01
+D04 Kaiyuan Vil.    -9.9733e-03  2.8295e-02  2.6143e-02 -2.3668e-01  8.1291e-01
+D04 Chengde Vil.     1.8791e-02 -1.2247e-02  1.3133e-02  2.7083e-01  7.8652e-01
+D08 Yonghua Vil.     2.3258e-04  5.6939e-04  3.5506e-04 -1.7874e-02  9.8574e-01
+D08 Junwang Vil.     1.9908e-01 -1.8712e-02  7.5766e-02  7.9122e-01  4.2882e-01
+D39 Yanxing Vil.     4.5857e-01 -5.3290e-03  1.4217e-01  1.2303e+00  2.1857e-01
+D04 Yuanmei Vil.    -1.6368e-02 -7.4051e-03  1.8632e-02 -6.5661e-02  9.4765e-01
+D08 Nanchang Vil.    3.7087e-02 -3.4420e-03  2.0237e-02  2.8490e-01  7.7572e-01
+D08 Qiancao Vil.    -3.4679e-03  2.4436e-03  3.4767e-03 -1.0026e-01  9.2014e-01
+D08 Fuqian Vil.      1.2058e-02  7.2346e-03  5.1667e-02  2.1222e-02  9.8307e-01
+D08 Nanmen Vil.      9.3355e-02 -2.8647e-02  9.4165e-03  1.2573e+00  2.0866e-01
+D04 Hexing Vil.      1.8183e-02 -1.0936e-02  6.7926e-03  3.5332e-01  7.2385e-01
+D39 Beiwan Vil.      8.2750e-01 -1.4870e-02  2.6874e-01  1.6249e+00  1.0418e-01
+D39 Beixing Vil.     5.9782e-01 -1.1263e-02  1.5721e-01  1.5362e+00  1.2450e-01
+D39 Longtan Vil.     5.3812e-01 -2.4227e-02  5.7548e-02  2.3442e+00  1.9069e-02
+D39 Puyuan Vil.      6.2255e-02  7.7608e-03  4.0479e-03  8.5651e-01  3.9172e-01
+D39 Sanmin Vil.      9.9432e-01  6.8732e-02  2.2275e-01  1.9612e+00  4.9859e-02
+D04 Ren'ai Vil.     -1.7263e-02  2.2794e-03  7.6872e-04 -7.0486e-01  4.8090e-01
+D04 Zhenxing Vil.    2.8528e-02 -3.5022e-03  2.9998e-03  5.8481e-01  5.5868e-01
+D04 Yongxiang Vil.   4.0433e-01 -1.0948e-01  8.3832e-02  1.7746e+00  7.5969e-02
+D04 Wenyuan Vil.     3.0901e-01 -1.4461e-02  8.9917e-03  3.4112e+00  6.4676e-04
+D08 Kaishan Vil.     1.3523e-02 -2.1051e-04  5.8596e-04  5.6735e-01  5.7048e-01
+D08 Daliang Vil.     9.0553e-02  4.9986e-02  6.4029e-02  1.6032e-01  8.7263e-01
+D08 Yaowang Vil.     3.1969e-01  6.1920e-02  2.5007e-01  5.1547e-01  6.0622e-01
+D08 Guangxian Vil.   5.1600e-02 -9.0633e-03  6.1939e-03  7.7081e-01  4.4082e-01
+D32 Erxing Vil.      7.4696e-01  5.6427e-02  3.1362e-01  1.2330e+00  2.1756e-01
+D32 Dajia Vil.       8.4283e-01  1.2509e-01  2.1087e-01  1.5630e+00  1.1805e-01
+D32 Renyi Vil.      -5.2979e-01 -1.9190e-01  7.0645e-01 -4.0202e-01  6.8767e-01
+D32 Tuku Vil.        4.3979e-01 -5.8786e-02  3.6526e-01  8.2496e-01  4.0939e-01
+D32 Taizi Vil.       1.7375e-01  2.6620e-02  3.7708e-02  7.5768e-01  4.4864e-01
+D06 Anxi Vil.        3.6280e-01  4.1014e-03  4.5504e-02  1.6815e+00  9.2662e-02
+D06 Da'an Vil.       2.2107e+00  5.4940e-03  2.1989e-01  4.7028e+00  2.5660e-06
+D06 Anhe Vil.        3.7927e-04 -1.3582e-04  2.0347e-06  3.6110e-01  7.1802e-01
+D06 Lixiang Vil.     5.3426e-01  2.4392e-02  2.1431e-01  1.1014e+00  2.7073e-01
+D06 Anqing Vil.      2.0721e-01  1.3440e-03  8.1106e-02  7.2287e-01  4.6976e-01
+D06 Meihua Vil.      4.0817e-01 -4.7998e-03  1.9319e-02  2.9711e+00  2.9671e-03
+D06 Ding'an Vil.     1.5408e-01 -1.1589e-02  6.9888e-02  6.2668e-01  5.3087e-01
+D06 Anshun Vil.      4.1835e-01  4.0490e-02  1.6393e-01  9.3325e-01  3.5069e-01
+D06 Zongtou Vil.     4.8212e-01  4.6275e-02  1.7132e-01  1.0530e+00  2.9235e-01
+D06 Yuandian Vil.    1.0357e-02 -8.2185e-02  1.4103e-01  2.4642e-01  8.0535e-01
+D06 Donghe Vil.      5.4684e-01 -5.6718e-02  1.1438e-01  1.7846e+00  7.4321e-02
+D39 Guangfu Vil.     5.5613e-01 -9.0016e-03  7.2277e-01  6.6474e-01  5.0622e-01
+D39 Shengli Vil.     4.6571e-01 -2.9189e-02  9.7438e-01  5.0137e-01  6.1611e-01
+D39 Jianguo Vil.    -4.5292e-02  2.5950e-03  9.9093e-02 -1.5212e-01  8.7909e-01
+D39 Liuhe Vil.       5.3902e-01  7.8504e-02  7.5956e-02  1.6710e+00  9.4730e-02
+D06 Yuanxi Vil.      7.8307e-01 -2.2231e-02  9.0213e-02  2.6812e+00  7.3366e-03
+D06 Chang'an Vil.    8.6502e-01 -1.6673e-02  1.1027e-01  2.6551e+00  7.9282e-03
+D39 Zhonghua Vil.    2.8321e-01 -2.4634e-02  8.6280e-02  1.0480e+00  2.9462e-01
+D39 Chenggong Vil.  -3.9143e-01 -2.6317e-02  1.4877e-01 -9.4659e-01  3.4385e-01
+D39 Zhongxing Vil.  -2.9690e-01  7.6663e-03  1.7211e-02 -2.3216e+00  2.0257e-02
+D39 Xishi Vil.       7.3603e-01 -8.4248e-02  2.2555e-01  1.7272e+00  8.4137e-02
+D39 Niaosong Vil.    4.3974e-01 -6.6616e-02  1.4361e-01  1.3362e+00  1.8149e-01
+D06 Xiangong Vil.    1.2368e+00  1.7793e-02  1.3540e-01  3.3128e+00  9.2378e-04
+D06 Zhounan Vil.     7.2684e-01 -1.8199e-03  9.0957e-02  2.4160e+00  1.5690e-02
+D06 Budai Vil.       7.6861e-01  4.3352e-02  1.7008e-01  1.7586e+00  7.8649e-02
+D06 Zhoubei Vil.     9.0016e-01 -3.7216e-02  3.1797e-01  1.6623e+00  9.6444e-02
+D06 Wennan Vil.      8.7916e-01 -4.1973e-02  3.4878e-01  1.5597e+00  1.1882e-01
+D06 Gongwen Vil.     1.1177e+00  4.8877e-02  2.6272e-01  2.0853e+00  3.7045e-02
+D06 Nanxing Vil.     1.1832e+00 -2.5326e-02  1.7698e-01  2.8726e+00  4.0707e-03
+D07 Yizai Vil.       1.5241e-01  6.5352e-03  1.1784e-01  4.2493e-01  6.7089e-01
+D07 Pingtong Vil.   -2.4576e-03 -1.4860e-03  1.4792e-04 -7.9886e-02  9.3633e-01
+D06 Haidong Vil.     3.1944e-01  1.7403e-02  1.5140e-02  2.4547e+00  1.4100e-02
+                       p_ii_sim p_folded_sim    skewness    kurtosis
+D06 Qingcao Vil.     2.0000e-02   1.0000e-02 -8.6171e-01  1.1503e+00
+D32 Bao'an Vil.      4.0000e-02   2.0000e-02 -5.8974e-01  3.1508e-01
+D08 Chihkan Vil.     9.2000e-01   4.6000e-01  8.7943e-02 -5.6410e-01
+D02 Dacheng Vil.     3.6000e-01   1.8000e-01 -5.3872e-01  3.1418e-02
+D06 Chengbei Vil.    2.0000e-02   1.0000e-02 -3.7730e-01 -3.7365e-02
+D06 Chengnan Vil.    2.0000e-02   1.0000e-02 -6.5511e-01  6.5736e-01
+D08 Fahua Vil.       3.2000e-01   1.6000e-01 -8.3947e-01  7.4931e-01
+D06 Hainan Vil.      6.8000e-01   3.4000e-01 -2.1061e-01 -5.1796e-01
+D06 Guo'an Vil.      1.8000e-01   9.0000e-02  5.1987e-01  5.2475e-01
+D06 Xixin Vil.       1.0000e-01   5.0000e-02 -7.2190e-01  1.4115e-01
+D06 Yuandong Vil.    6.0000e-02   3.0000e-02 -1.1147e+00  2.1084e+00
+D06 Chengzhong Vil.  2.0000e-02   1.0000e-02 -3.7215e-01 -1.3218e-01
+D06 Chengdong Vil.   2.0000e-02   1.0000e-02 -5.0507e-01 -2.2041e-01
+D06 Xuedong Vil.     2.0000e-02   1.0000e-02 -6.8112e-01  5.0803e-01
+D39 Dongwan Vil.     1.0000e-01   5.0000e-02 -1.0248e+00  3.7990e-01
+D39 Nanwan Vil.      3.8000e-01   1.9000e-01 -5.9471e-01  5.7336e-01
+D39 Kunshan Vil.     1.6000e-01   8.0000e-02  1.7514e-01 -6.3185e-01
+D39 Dawan Vil.       1.0000e-01   5.0000e-02 -5.4622e-01  9.4488e-02
+D39 Wuwang Vil.      6.0000e-02   3.0000e-02  8.9277e-01  1.6997e+00
+D39 Ankang Vil.      2.0000e-01   1.0000e-01  9.7027e-01  2.2804e+00
+D39 Xiqiao Vil.      6.8000e-01   3.4000e-01  5.5472e-01  7.9855e-01
+D39 Wangliao Vil.    6.0000e-02   3.0000e-02 -8.3704e-01  1.3114e+00
+D39 Daqiao Vil.      2.0000e-01   1.0000e-01  6.1294e-01 -1.7402e-02
+D39 Dongqiao Vil.    2.4000e-01   1.2000e-01  8.7039e-01  1.1750e+00
+D39 Wuzhu Vil.       2.0000e-02   1.0000e-02 -6.4057e-01  6.2556e-01
+D39 Wangxing Vil.    2.0000e-02   1.0000e-02 -1.1995e+00  3.0374e+00
+D01 Dazhi Vil.       5.6000e-01   2.8000e-01  5.6718e-01  8.6897e-01
+D01 Chongwen Vil.    4.0000e-01   2.0000e-01  5.3027e-01  5.2950e-01
+D01 Chongcheng Vil.  1.2000e-01   6.0000e-02 -5.2029e-01  2.7705e-01
+D01 Chongming Vil.   4.4000e-01   2.2000e-01 -2.6821e-02 -3.0842e-01
+D01 Dafu Vil.        3.6000e-01   1.8000e-01  1.4647e-01 -2.5636e-01
+D01 Chongde Vil.     1.2000e-01   6.0000e-02  5.7770e-01  5.1663e-01
+D01 Dade Vil.        5.0000e-01   2.5000e-01 -5.6226e-01  2.4007e-01
+D01 Chongxue Vil.    4.0000e-02   2.0000e-02  1.0874e-01  2.9305e-01
+D01 Heping Vil.      6.0000e-02   3.0000e-02  9.6365e-01  2.2023e+00
+D01 Chongshan Vil.   2.0000e-02   1.0000e-02  2.4769e-01 -4.4195e-01
+D01 Ludong Vil.      7.8000e-01   3.9000e-01 -6.3193e-01  1.1970e+00
+D01 Huwei Vil.       2.0000e-02   1.0000e-02  2.3061e-01 -4.1057e-01
+D01 Zhongxiao Vil.   3.4000e-01   1.7000e-01  3.4600e-01 -1.6945e-01
+D01 Yusheng Vil.     6.6000e-01   3.3000e-01 -2.9485e-01 -8.3392e-01
+D01 Chongxin Vil.    2.0000e-02   1.0000e-02  3.5134e-01  3.3673e-02
+D01 Deguang Vil.     1.8000e-01   9.0000e-02  8.5345e-01  9.7632e-01
+D01 Fuxing Vil.      1.0000e-01   5.0000e-02  6.0441e-01  1.5679e-01
+D01 Ziqiang Vil.     2.0000e-02   1.0000e-02  2.1539e-01 -3.5362e-01
+D01 Wensheng Vil.    5.4000e-01   2.7000e-01 -7.1260e-01  2.7867e-01
+D01 Fuyu Vil.        8.0000e-02   4.0000e-02 -6.8989e-01  1.1395e+00
+D01 Longshan Vil.    3.4000e-01   1.7000e-01  1.0697e+00  3.3645e+00
+D01 Guansheng Vil.   8.8000e-01   4.4000e-01  8.3006e-01  6.1721e-01
+D01 Xindong Vil.     8.0000e-01   4.0000e-01  6.4523e-01  4.1243e-01
+D01 Fuqiang Vil.     4.0000e-02   2.0000e-02  6.2649e-01  2.9222e-01
+D01 Quannan Vil.     9.6000e-01   4.8000e-01  4.0522e-01 -3.8973e-01
+D01 Dongsheng Vil.   8.0000e-02   4.0000e-02  4.4136e-01 -3.9381e-02
+D01 Dong'an Vil.     9.8000e-01   4.9000e-01 -6.2833e-01  4.3201e-01
+D01 Datong Vil.      5.6000e-01   2.8000e-01 -2.8001e-02 -5.9429e-01
+D01 Weiguo Vil.      9.8000e-01   4.9000e-01 -6.5657e-01  1.6156e-01
+D01 Yunong Vil.      2.4000e-01   1.2000e-01  7.4858e-01  1.1450e+00
+D01 Nansheng Vil.    4.6000e-01   2.3000e-01 -6.4327e-01 -5.8227e-02
+D01 Chonghui Vil.    6.4000e-01   3.2000e-01  4.4269e-01 -8.7853e-02
+D01 Dongmen Vil.     1.0000e+00   5.0000e-01 -7.6873e-01  1.2145e+00
+D01 Zhongxi Vil.     4.0000e-01   2.0000e-01 -2.8452e-01 -3.8569e-01
+D01 Dongming Vil.    5.4000e-01   2.7000e-01  3.9994e-01  1.6075e-01
+D01 Weixia Vil.      3.0000e-01   1.5000e-01 -6.4283e-01  1.1116e+00
+D01 Dongguang Vil.   1.4000e-01   7.0000e-02  5.8661e-01 -3.0421e-02
+D01 Houjia Vil.      1.4000e-01   7.0000e-02  1.1315e+00  2.8123e+00
+D01 Zhuangjing Vil.  6.0000e-02   3.0000e-02  3.3477e-01  3.5399e-01
+D01 Xiaodong Vil.    9.2000e-01   4.6000e-01  3.9828e-01 -3.2656e-01
+D01 Daxue Vil.       8.6000e-01   4.3000e-01 -6.8493e-01  5.8863e-01
+D01 Chengda Vil.     8.8000e-01   4.4000e-01 -5.4440e-01  4.4951e-02
+D04 Gongyuan Vil.    7.2000e-01   3.6000e-01 -5.2309e-01 -1.0443e-01
+D04 Zhonglou Vil.    9.6000e-01   4.8000e-01  6.2000e-01 -1.9736e-01
+D04 Xianbei Vil.     7.2000e-01   3.6000e-01 -6.0315e-01  8.0779e-02
+D04 Dafeng Vil.      8.6000e-01   4.3000e-01  4.9810e-01 -3.2469e-01
+D04 Dagang Vil.      9.2000e-01   4.6000e-01  8.1053e-01  8.0143e-01
+D04 Zhengjue Vil.    8.0000e-02   4.0000e-02  3.3853e-01  2.2209e-01
+D04 Dahe Vil.        6.0000e-02   3.0000e-02  7.0719e-01  5.0055e-01
+D04 Chenggong Vil.   2.0000e-01   1.0000e-01  4.4003e-01 -5.2282e-01
+D02 Fotan Vil.       8.0000e-02   4.0000e-02 -9.1807e-01  1.1193e+00
+D02 Tong'an Vil.     2.0000e-02   1.0000e-02 -3.1172e-01 -1.6458e-01
+D02 Song'an Vil.     1.4000e-01   7.0000e-02 -4.5093e-01 -2.7962e-01
+D02 Yongning Vil.    2.0000e-02   1.0000e-02 -5.6030e-01 -2.4018e-01
+D02 Xinan Vil.       8.0000e-02   4.0000e-02 -6.7308e-01  1.1870e-01
+D02 Xidong Vil.      7.4000e-01   3.7000e-01 -4.6958e-01  2.7883e-01
+D02 Xibei Vil.       4.0000e-02   2.0000e-02 -7.0286e-01  1.4578e-01
+D02 Nandou Vil.      5.4000e-01   2.7000e-01  4.4453e-01 -3.5090e-01
+D02 Nanhua Vil.      1.4000e-01   7.0000e-02  4.2163e-01 -3.8680e-01
+D02 Jiannan Vil.     3.8000e-01   1.9000e-01  7.1694e-01  1.0699e+00
+D02 Mingxing Vil.    2.0000e-02   1.0000e-02  1.4148e-01 -5.3543e-01
+D02 Junnan Vil.      2.0000e-02   1.0000e-02  2.6678e-01 -1.1592e-01
+D02 Kainan Vil.      4.4000e-01   2.2000e-01  8.4510e-01  4.3628e-01
+D02 Mingliang Vil.   2.0000e-02   1.0000e-02  8.4664e-01  6.9243e-01
+D02 Kunshen Vil.     6.2000e-01   3.1000e-01 -7.0929e-01 -1.2834e-01
+D02 Dazhong Vil.     5.8000e-01   2.9000e-01  2.8660e-01 -5.2782e-01
+D02 Guangming Vil.   2.2000e-01   1.1000e-01  5.0545e-01  3.3327e-01
+D02 Funan Vil.       1.8000e-01   9.0000e-02  8.4579e-01  9.4393e-01
+D02 Dalin Vil.       3.0000e-01   1.5000e-01 -5.9555e-01  1.0401e-01
+D02 Guozhai Vil.     2.4000e-01   1.2000e-01  1.0283e+00  2.7494e+00
+D02 Tianliao Vil.    1.0000e-01   5.0000e-02  3.0025e-01 -3.0039e-01
+D02 Xinsheng Vil.    1.0000e-01   5.0000e-02 -3.4969e-01 -2.2735e-01
+D02 Zhuxi Vil.       6.0000e-02   3.0000e-02 -4.1257e-01 -1.4272e-01
+D02 Mingde Vil.      4.8000e-01   2.4000e-01 -1.3742e-01 -5.5265e-01
+D02 Zaixing Vil.     1.6000e-01   8.0000e-02  3.0877e-01 -4.5134e-01
+D02 Zhangnan Vil.    2.4000e-01   1.2000e-01 -2.4992e-01 -1.2608e-01
+D02 Jinhua Vil.      6.8000e-01   3.4000e-01  7.0110e-01  4.4566e-02
+D02 Xinxing Vil.     3.0000e-01   1.5000e-01  8.3480e-01  1.3267e+00
+D02 Wennan Vil.      8.4000e-01   4.2000e-01  2.3877e-01 -7.0746e-01
+D02 Xinchang Vil.    8.6000e-01   4.3000e-01  8.5648e-01  2.2644e+00
+D02 Guangzhou Vil.   3.2000e-01   1.6000e-01 -1.2968e-01 -2.8995e-01
+D02 Wenhua Vil.      8.0000e-01   4.0000e-01 -1.1603e+00  1.9848e+00
+D06 Xiding Vil.      2.8000e-01   1.4000e-01  6.8755e-01  1.0299e+00
+D06 Haidian Vil.     2.0000e-02   1.0000e-02  6.8687e-01 -4.2966e-03
+D06 Xidong Vil.      4.0000e-02   2.0000e-02  1.4147e+00  5.4463e+00
+D06 Xibei Vil.       4.0000e-01   2.0000e-01  7.1233e-01  6.9809e-01
+D06 Xiqi Vil.        2.0000e-02   1.0000e-02  2.2511e-01 -6.5901e-01
+D06 Anfu Vil.        2.0000e-02   1.0000e-02  3.2582e-01 -3.8125e-01
+D06 Yantian  Vil.    8.0000e-02   4.0000e-02 -5.4616e-01  3.3510e-01
+D06 Fenghuang Vil.   6.8000e-01   3.4000e-01  6.5542e-01  4.0214e-01
+D06 Gongqin Vil.     1.6000e-01   8.0000e-02 -8.0958e-01  2.7165e-01
+D06 Shalun Vil.      4.0000e-02   2.0000e-02 -5.1440e-01  5.4378e-01
+D07 Wenping Vil.     6.6000e-01   3.3000e-01  5.3971e-01 -1.2992e-02
+D07 Guoping Vil.     2.6000e-01   1.3000e-01 -4.5042e-01  3.8785e-01
+D07 Yuping Vil.      5.8000e-01   2.9000e-01  7.5174e-01  3.3878e-01
+D07 Huaping Vil.     7.2000e-01   3.6000e-01 -6.8231e-01 -7.3927e-02
+D07 Yiping Vil.      9.6000e-01   4.8000e-01 -1.2798e+00  2.8793e+00
+D07 Jianping Vil.    6.4000e-01   3.2000e-01 -1.5777e-01 -5.3216e-01
+D06 Xingfu Vil.      6.0000e-02   3.0000e-02  5.7085e-01 -7.6587e-02
+D32 Shanglun Vil.    4.0000e-02   2.0000e-02 -6.4196e-01  2.4342e-01
+D32 Houbi Vil.       2.2000e-01   1.1000e-01 -7.5544e-01  1.7930e-01
+D32 Chenggong Vil.   2.0000e-02   1.0000e-02 -7.3731e-01  1.9236e+00
+D32 Renhe Vil.       3.6000e-01   1.8000e-01 -7.9612e-02 -3.5101e-01
+D32 Ren'ai Vil.      5.2000e-01   2.6000e-01 -8.6359e-01  4.9088e-01
+D32 Rende Vil.       4.4000e-01   2.2000e-01  2.7903e-01 -3.9931e-01
+D02 Xingnong Vil.    2.0000e-02   1.0000e-02 -8.3079e-01  1.2308e+00
+D02 Shenggong Vil.   2.0000e-02   1.0000e-02 -3.1537e-01  4.5241e-01
+D32 Xintian Vil.     6.4000e-01   3.2000e-01 -1.2355e+00  2.8216e+00
+D32 Yijia Vil.       6.4000e-01   3.2000e-01 -1.1816e+00  2.5325e+00
+D01 Degao Vil.       1.8000e-01   9.0000e-02  5.5986e-01 -3.0343e-01
+D01 Renhe Vil.       2.0000e-01   1.0000e-01  5.3443e-01  1.0735e-01
+D32 Zhongzhou Vil.   2.4000e-01   1.2000e-01 -6.2243e-01 -7.2053e-03
+D39 Xiwan Vil.       4.0000e-02   2.0000e-02 -5.2477e-01 -1.7327e-01
+D39 Jiading Vil.     4.0000e-02   2.0000e-02  2.9904e-01  1.1682e-01
+D39 Yongkang Vil.    9.0000e-01   4.5000e-01 -8.2727e-01  4.1554e-01
+D39 Zhengqiang Vil.  7.4000e-01   3.7000e-01  9.4186e-01  3.1599e-01
+D07 Yuguang Vil.     8.0000e-02   4.0000e-02 -4.7611e-01 -3.0626e-01
+D07 Jincheng Vil.    8.0000e-02   4.0000e-02 -6.6584e-01  6.7560e-01
+D39 Shangding Vil.   2.2000e-01   1.1000e-01  2.4535e-01 -5.8850e-01
+D39 Fuxing Vil.      9.4000e-01   4.7000e-01 -1.1829e-01 -2.8516e-01
+D39 Shenzhou Vil.    8.4000e-01   4.2000e-01 -4.0620e-01  3.9486e-01
+D39 Fuguo Vil.       4.2000e-01   2.1000e-01  4.0995e-01 -1.3367e-01
+D39 Sanhe Vil.       2.0000e-02   1.0000e-02 -3.8949e-01 -2.4163e-01
+D39 Fuhua Vil.       1.0000e-01   5.0000e-02  3.3948e-01 -3.6300e-01
+D39 Erwang Vil.      2.0000e-02   1.0000e-02  3.9320e-01  5.8314e-02
+D01 Dongzhi Vil.     2.6000e-01   1.3000e-01 -2.7041e-02 -4.9665e-01
+D02 Da'en Vil.       4.0000e-01   2.0000e-01  4.8754e-01  2.1431e-01
+D08 Xihu Vil.        7.4000e-01   3.7000e-01  4.4581e-01 -3.7823e-01
+D07 Ping'an Vil.     8.2000e-01   4.1000e-01 -4.7304e-01  6.1987e-02
+D08 Xixian Vil.      8.4000e-01   4.2000e-01 -6.0256e-02 -6.9844e-01
+D06 Sicao Vil.       1.8000e-01   9.0000e-02 -8.9210e-01  1.2767e+00
+D06 Andong Vil.      5.6000e-01   2.8000e-01 -6.4410e-01  6.6764e-01
+D06 Yuanzhong Vil.   2.0000e-02   1.0000e-02 -1.1745e+00  2.7462e+00
+D06 Chengxi Vil.     4.0000e-02   2.0000e-02 -9.1100e-01  6.0280e-01
+D06 Diandong Vil.    4.0000e-02   2.0000e-02 -8.4843e-02 -1.8665e-01
+D06 Xinshun Vil.     2.6000e-01   1.3000e-01 -5.1077e-01  8.1546e-01
+D39 Xinshu Vil.      4.0000e-02   2.0000e-02 -1.2106e+00  1.6331e+00
+D39 Yanxing  Vil.    7.2000e-01   3.6000e-01  1.1971e+00  2.0997e+00
+D06 Haixi Vil.       6.4000e-01   3.2000e-01 -9.4890e-01  9.2746e-01
+D06 Dianxi Vil.      2.0000e-02   1.0000e-02 -4.4206e-01 -2.7766e-01
+D32 Wenxian Vil.     1.8000e-01   9.0000e-02 -5.0037e-01  2.2620e-01
+D39 Longpu Vil.      8.0000e-02   4.0000e-02 -4.1489e-01 -5.5974e-01
+D39 Yongming Vil.    1.0000e-01   5.0000e-02 -5.2235e-01 -3.0370e-01
+D02 Yancheng Vil.    2.0000e-02   1.0000e-02  4.7664e-01  7.1340e-01
+D04 Beihua Vil.      6.6000e-01   3.3000e-01  8.8126e-02 -7.0935e-01
+D04 Huade Vil.       2.0000e-02   1.0000e-02 -3.2364e-01 -7.3315e-01
+D04 Fude Vil.        4.4000e-01   2.2000e-01 -5.1371e-01 -3.5586e-01
+D04 Zhangsheng Vil.  7.4000e-01   3.7000e-01 -4.9791e-02 -7.2620e-01
+D04 Zhangxing Vil.   4.8000e-01   2.4000e-01 -4.8743e-01 -5.3136e-01
+D04 Daxing Vil.      7.0000e-01   3.5000e-01  5.7087e-01  7.4038e-02
+D04 Daguang Vil.     6.0000e-02   3.0000e-02 -2.9876e-01 -2.5370e-01
+D04 Xiaobei Vil.     5.4000e-01   2.7000e-01  7.2706e-01  1.1462e+00
+D04 Shuang'an Vil.   5.8000e-01   2.9000e-01 -1.1993e-01 -5.2523e-01
+D04 Liren Vil.       8.0000e-01   4.0000e-01  4.1130e-01  5.2701e-02
+D08 Xiaoximen Vil.   5.6000e-01   2.8000e-01  4.4642e-01  8.4009e-01
+D08 Duiyue Vil.      6.6000e-01   3.3000e-01  1.1927e+00  1.9726e+00
+D08 Wutiaogang Vil.  2.6000e-01   1.3000e-01 -5.9288e-01  5.6792e-01
+D08 Nanmei Vil.      9.4000e-01   4.7000e-01  4.1765e-01  4.2360e-01
+D07 Wangcheng Vil.   8.0000e-01   4.0000e-01 -5.2364e-01  4.6078e-02
+D07 Tianfei Vil.     2.4000e-01   1.2000e-01  4.5071e-01  2.5131e-02
+D08 Chenghuang Vil.  6.0000e-01   3.0000e-01  1.7000e-01 -4.8644e-01
+D08 Xihe Vil.        5.6000e-01   2.8000e-01  1.6943e-01 -2.5035e-01
+D04 Beimen Vil.      2.4000e-01   1.2000e-01  5.9255e-01  5.8771e-01
+D39 Yanzhou  Vil.    1.8000e-01   9.0000e-02 -5.7783e-01  4.2322e-01
+D04 Dongxing Vil.    3.0000e-01   1.5000e-01  6.0474e-01 -1.8903e-01
+D04 Zhongxing Vil.   2.6000e-01   1.3000e-01 -6.2648e-01  4.8138e-01
+D04 Heshun Vil.      9.8000e-01   4.9000e-01  7.8060e-01  7.4367e-01
+D04 Lixing Vil.      1.2000e-01   6.0000e-02  7.5630e-01  4.3652e-01
+D04 Wencheng Vil.    7.0000e-01   3.5000e-01 -2.4498e-01 -7.5149e-01
+D04 Yuanbao Vil.     7.2000e-01   3.6000e-01 -7.4994e-01  3.4707e-01
+D04 Kaiyuan Vil.     7.2000e-01   3.6000e-01 -7.4705e-01  1.6562e+00
+D04 Chengde Vil.     7.4000e-01   3.7000e-01  2.8281e-01 -6.1833e-01
+D08 Yonghua Vil.     9.2000e-01   4.6000e-01  6.5125e-01  4.3879e-01
+D08 Junwang Vil.     4.2000e-01   2.1000e-01 -1.5356e-01 -1.5049e-01
+D39 Yanxing Vil.     1.8000e-01   9.0000e-02 -5.8557e-01  2.6074e-01
+D04 Yuanmei Vil.     8.4000e-01   4.2000e-01 -6.2968e-01  4.2913e-01
+D08 Nanchang Vil.    7.8000e-01   3.9000e-01 -4.7938e-01  4.5167e-01
+D08 Qiancao Vil.     9.6000e-01   4.8000e-01  6.1671e-01  2.0909e-01
+D08 Fuqian Vil.      9.8000e-01   4.9000e-01 -2.8566e-01  6.1816e-02
+D08 Nanmen Vil.      1.6000e-01   8.0000e-02 -4.6100e-01 -6.1455e-01
+D04 Hexing Vil.      7.6000e-01   3.8000e-01 -1.9247e-01 -1.5932e-01
+D39 Beiwan Vil.      8.0000e-02   4.0000e-02 -7.5209e-01  2.5619e-01
+D39 Beixing Vil.     8.0000e-02   4.0000e-02 -6.3723e-01  4.6943e-01
+D39 Longtan Vil.     2.0000e-02   1.0000e-02 -1.5891e-01 -7.5463e-01
+D39 Puyuan Vil.      4.0000e-01   2.0000e-01 -5.4960e-01  4.8435e-02
+D39 Sanmin Vil.      6.0000e-02   3.0000e-02 -3.5615e-04 -6.2483e-01
+D04 Ren'ai Vil.      5.0000e-01   2.5000e-01  9.1780e-02 -4.8862e-01
+D04 Zhenxing Vil.    6.8000e-01   3.4000e-01 -4.5747e-01 -5.8622e-01
+D04 Yongxiang Vil.   8.0000e-02   4.0000e-02  1.4486e-01 -5.6055e-01
+D04 Wenyuan Vil.     2.0000e-02   1.0000e-02  1.7566e-01 -3.4155e-01
+D08 Kaishan Vil.     7.0000e-01   3.5000e-01 -7.2160e-01 -3.0035e-01
+D08 Daliang Vil.     9.2000e-01   4.6000e-01 -6.3518e-01  5.3115e-01
+D08 Yaowang Vil.     5.2000e-01   2.6000e-01  3.6413e-01 -1.6594e-01
+D08 Guangxian Vil.   4.2000e-01   2.1000e-01  4.4138e-01  3.1669e-02
+D32 Erxing Vil.      1.2000e-01   6.0000e-02 -1.2926e+00  2.1467e+00
+D32 Dajia Vil.       1.0000e-01   5.0000e-02 -2.1909e-01 -4.0574e-01
+D32 Renyi Vil.       7.0000e-01   3.5000e-01  5.6417e-01  4.8429e-01
+D32 Tuku Vil.        5.0000e-01   2.5000e-01 -5.4873e-01 -4.7199e-01
+D32 Taizi Vil.       4.2000e-01   2.1000e-01 -3.4338e-01  3.5933e-01
+D06 Anxi Vil.        1.0000e-01   5.0000e-02  2.2951e-01 -5.1813e-01
+D06 Da'an Vil.       2.0000e-02   1.0000e-02  3.5216e-01  2.3507e-01
+D06 Anhe Vil.        7.6000e-01   3.8000e-01 -3.0410e-01 -1.7367e-01
+D06 Lixiang Vil.     3.8000e-01   1.9000e-01  6.3503e-01 -3.7713e-01
+D06 Anqing Vil.      5.2000e-01   2.6000e-01  1.3628e-02 -6.2999e-01
+D06 Meihua Vil.      2.0000e-02   1.0000e-02  1.2237e-01 -2.4692e-01
+D06 Ding'an Vil.     5.2000e-01   2.6000e-01  4.9452e-01  7.8255e-01
+D06 Anshun Vil.      3.2000e-01   1.6000e-01 -8.0343e-01  7.0027e-01
+D06 Zongtou Vil.     2.4000e-01   1.2000e-01 -8.2363e-01  1.1315e+00
+D06 Yuandian Vil.    9.0000e-01   4.5000e-01 -6.9933e-01  4.4920e-01
+D06 Donghe Vil.      6.0000e-02   3.0000e-02 -4.7537e-01 -1.0285e-01
+D39 Guangfu Vil.     5.4000e-01   2.7000e-01 -1.0089e+00  9.8605e-01
+D39 Shengli Vil.     7.0000e-01   3.5000e-01  1.5920e-01 -1.0421e-02
+D39 Jianguo Vil.     8.4000e-01   4.2000e-01 -3.6502e-01 -8.2428e-01
+D39 Liuhe Vil.       1.4000e-01   7.0000e-02  6.7074e-01  4.5886e-01
+D06 Yuanxi Vil.      2.0000e-02   1.0000e-02 -7.6696e-01  1.0158e+00
+D06 Chang'an Vil.    2.0000e-02   1.0000e-02 -7.3873e-01  4.3399e-01
+D39 Zhonghua Vil.    3.4000e-01   1.7000e-01  2.5917e-01 -3.9799e-01
+D39 Chenggong Vil.   3.8000e-01   1.9000e-01 -8.3706e-01  1.9200e-01
+D39 Zhongxing Vil.   6.0000e-02   3.0000e-02 -9.5085e-01  1.8914e+00
+D39 Xishi Vil.       4.0000e-02   2.0000e-02 -5.0799e-01 -7.4618e-02
+D39 Niaosong Vil.    2.4000e-01   1.2000e-01 -2.5868e-01 -9.3492e-02
+D06 Xiangong Vil.    2.0000e-02   1.0000e-02 -5.6952e-01  5.8907e-01
+D06 Zhounan Vil.     2.0000e-02   1.0000e-02 -1.2642e-01 -4.2247e-01
+D06 Budai Vil.       2.0000e-02   1.0000e-02 -4.0897e-01 -2.6149e-01
+D06 Zhoubei Vil.     1.0000e-01   5.0000e-02 -9.4046e-01  1.8077e+00
+D06 Wennan Vil.      4.0000e-02   2.0000e-02 -9.3113e-01  3.0632e-01
+D06 Gongwen Vil.     2.0000e-02   1.0000e-02 -4.6172e-01  2.0794e-02
+D06 Nanxing Vil.     2.0000e-02   1.0000e-02 -8.9216e-02 -4.5748e-01
+D07 Yizai Vil.       7.4000e-01   3.7000e-01 -6.2616e-01  2.5418e-01
+D07 Pingtong Vil.    9.4000e-01   4.7000e-01  5.3104e-01  2.8764e-01
+D06 Haidong Vil.     6.0000e-02   3.0000e-02  5.7574e-01 -6.0982e-03
+                           mean      median pysal
+D06 Qingcao Vil.     1.0000e+00  1.0000e+00     1
+D32 Bao'an Vil.      1.0000e+00  1.0000e+00     1
+D08 Chihkan Vil.     4.0000e+00  4.0000e+00     4
+D02 Dacheng Vil.     3.0000e+00  3.0000e+00     3
+D06 Chengbei Vil.    1.0000e+00  1.0000e+00     1
+D06 Chengnan Vil.    1.0000e+00  1.0000e+00     1
+D08 Fahua Vil.       1.0000e+00  1.0000e+00     1
+D06 Hainan Vil.      1.0000e+00  1.0000e+00     1
+D06 Guo'an Vil.      4.0000e+00  4.0000e+00     4
+D06 Xixin Vil.       1.0000e+00  2.0000e+00     1
+D06 Yuandong Vil.    1.0000e+00  1.0000e+00     1
+D06 Chengzhong Vil.  1.0000e+00  1.0000e+00     1
+D06 Chengdong Vil.   1.0000e+00  1.0000e+00     1
+D06 Xuedong Vil.     1.0000e+00  1.0000e+00     1
+D39 Dongwan Vil.     1.0000e+00  1.0000e+00     1
+D39 Nanwan Vil.      1.0000e+00  1.0000e+00     1
+D39 Kunshan Vil.     2.0000e+00  2.0000e+00     2
+D39 Dawan Vil.       1.0000e+00  1.0000e+00     1
+D39 Wuwang Vil.      4.0000e+00  4.0000e+00     4
+D39 Ankang Vil.      4.0000e+00  4.0000e+00     4
+D39 Xiqiao Vil.      4.0000e+00  4.0000e+00     4
+D39 Wangliao Vil.    3.0000e+00  3.0000e+00     3
+D39 Daqiao Vil.      4.0000e+00  4.0000e+00     4
+D39 Dongqiao Vil.    4.0000e+00  4.0000e+00     4
+D39 Wuzhu Vil.       1.0000e+00  1.0000e+00     1
+D39 Wangxing Vil.    1.0000e+00  1.0000e+00     1
+D01 Dazhi Vil.       4.0000e+00  4.0000e+00     4
+D01 Chongwen Vil.    4.0000e+00  4.0000e+00     4
+D01 Chongcheng Vil.  3.0000e+00  3.0000e+00     3
+D01 Chongming Vil.   3.0000e+00  3.0000e+00     3
+D01 Dafu Vil.        1.0000e+00  1.0000e+00     1
+D01 Chongde Vil.     4.0000e+00  4.0000e+00     4
+D01 Dade Vil.        1.0000e+00  1.0000e+00     1
+D01 Chongxue Vil.    4.0000e+00  4.0000e+00     4
+D01 Heping Vil.      4.0000e+00  4.0000e+00     4
+D01 Chongshan Vil.   4.0000e+00  4.0000e+00     4
+D01 Ludong Vil.      3.0000e+00  3.0000e+00     3
+D01 Huwei Vil.       4.0000e+00  4.0000e+00     4
+D01 Zhongxiao Vil.   4.0000e+00  4.0000e+00     4
+D01 Yusheng Vil.     3.0000e+00  3.0000e+00     3
+D01 Chongxin Vil.    4.0000e+00  4.0000e+00     4
+D01 Deguang Vil.     4.0000e+00  4.0000e+00     4
+D01 Fuxing Vil.      4.0000e+00  4.0000e+00     4
+D01 Ziqiang Vil.     4.0000e+00  4.0000e+00     4
+D01 Wensheng Vil.    3.0000e+00  4.0000e+00     3
+D01 Fuyu Vil.        3.0000e+00  4.0000e+00     3
+D01 Longshan Vil.    4.0000e+00  4.0000e+00     4
+D01 Guansheng Vil.   2.0000e+00  2.0000e+00     2
+D01 Xindong Vil.     2.0000e+00  2.0000e+00     2
+D01 Fuqiang Vil.     4.0000e+00  4.0000e+00     4
+D01 Quannan Vil.     2.0000e+00  2.0000e+00     2
+D01 Dongsheng Vil.   4.0000e+00  4.0000e+00     4
+D01 Dong'an Vil.     1.0000e+00  1.0000e+00     1
+D01 Datong Vil.      2.0000e+00  2.0000e+00     2
+D01 Weiguo Vil.      1.0000e+00  1.0000e+00     1
+D01 Yunong Vil.      4.0000e+00  4.0000e+00     4
+D01 Nansheng Vil.    3.0000e+00  3.0000e+00     3
+D01 Chonghui Vil.    4.0000e+00  4.0000e+00     4
+D01 Dongmen Vil.     1.0000e+00  1.0000e+00     1
+D01 Zhongxi Vil.     1.0000e+00  1.0000e+00     1
+D01 Dongming Vil.    4.0000e+00  4.0000e+00     4
+D01 Weixia Vil.      1.0000e+00  1.0000e+00     1
+D01 Dongguang Vil.   4.0000e+00  4.0000e+00     4
+D01 Houjia Vil.      4.0000e+00  4.0000e+00     4
+D01 Zhuangjing Vil.  4.0000e+00  4.0000e+00     4
+D01 Xiaodong Vil.    4.0000e+00  4.0000e+00     4
+D01 Daxue Vil.       1.0000e+00  1.0000e+00     1
+D01 Chengda Vil.     1.0000e+00  1.0000e+00     1
+D04 Gongyuan Vil.    3.0000e+00  4.0000e+00     3
+D04 Zhonglou Vil.    2.0000e+00  2.0000e+00     2
+D04 Xianbei Vil.     3.0000e+00  3.0000e+00     3
+D04 Dafeng Vil.      4.0000e+00  4.0000e+00     4
+D04 Dagang Vil.      2.0000e+00  2.0000e+00     2
+D04 Zhengjue Vil.    4.0000e+00  4.0000e+00     4
+D04 Dahe Vil.        4.0000e+00  4.0000e+00     4
+D04 Chenggong Vil.   4.0000e+00  4.0000e+00     4
+D02 Fotan Vil.       1.0000e+00  1.0000e+00     1
+D02 Tong'an Vil.     1.0000e+00  1.0000e+00     1
+D02 Song'an Vil.     1.0000e+00  1.0000e+00     1
+D02 Yongning Vil.    1.0000e+00  1.0000e+00     1
+D02 Xinan Vil.       1.0000e+00  1.0000e+00     1
+D02 Xidong Vil.      1.0000e+00  1.0000e+00     1
+D02 Xibei Vil.       1.0000e+00  1.0000e+00     1
+D02 Nandou Vil.      4.0000e+00  4.0000e+00     4
+D02 Nanhua Vil.      4.0000e+00  4.0000e+00     4
+D02 Jiannan Vil.     4.0000e+00  4.0000e+00     4
+D02 Mingxing Vil.    4.0000e+00  4.0000e+00     4
+D02 Junnan Vil.      4.0000e+00  4.0000e+00     4
+D02 Kainan Vil.      4.0000e+00  4.0000e+00     4
+D02 Mingliang Vil.   4.0000e+00  4.0000e+00     4
+D02 Kunshen Vil.     1.0000e+00  1.0000e+00     1
+D02 Dazhong Vil.     2.0000e+00  2.0000e+00     2
+D02 Guangming Vil.   4.0000e+00  4.0000e+00     4
+D02 Funan Vil.       4.0000e+00  4.0000e+00     4
+D02 Dalin Vil.       1.0000e+00  1.0000e+00     1
+D02 Guozhai Vil.     4.0000e+00  4.0000e+00     4
+D02 Tianliao Vil.    4.0000e+00  4.0000e+00     4
+D02 Xinsheng Vil.    1.0000e+00  1.0000e+00     1
+D02 Zhuxi Vil.       1.0000e+00  1.0000e+00     1
+D02 Mingde Vil.      3.0000e+00  3.0000e+00     3
+D02 Zaixing Vil.     4.0000e+00  4.0000e+00     4
+D02 Zhangnan Vil.    3.0000e+00  3.0000e+00     3
+D02 Jinhua Vil.      4.0000e+00  4.0000e+00     4
+D02 Xinxing Vil.     4.0000e+00  4.0000e+00     4
+D02 Wennan Vil.      4.0000e+00  4.0000e+00     4
+D02 Xinchang Vil.    4.0000e+00  4.0000e+00     4
+D02 Guangzhou Vil.   3.0000e+00  4.0000e+00     3
+D02 Wenhua Vil.      1.0000e+00  2.0000e+00     1
+D06 Xiding Vil.      4.0000e+00  4.0000e+00     4
+D06 Haidian Vil.     4.0000e+00  4.0000e+00     4
+D06 Xidong Vil.      4.0000e+00  4.0000e+00     4
+D06 Xibei Vil.       4.0000e+00  4.0000e+00     4
+D06 Xiqi Vil.        4.0000e+00  4.0000e+00     4
+D06 Anfu Vil.        4.0000e+00  4.0000e+00     4
+D06 Yantian  Vil.    1.0000e+00  1.0000e+00     1
+D06 Fenghuang Vil.   4.0000e+00  4.0000e+00     4
+D06 Gongqin Vil.     1.0000e+00  1.0000e+00     1
+D06 Shalun Vil.      1.0000e+00  1.0000e+00     1
+D07 Wenping Vil.     2.0000e+00  2.0000e+00     2
+D07 Guoping Vil.     1.0000e+00  1.0000e+00     1
+D07 Yuping Vil.      2.0000e+00  2.0000e+00     2
+D07 Huaping Vil.     1.0000e+00  1.0000e+00     1
+D07 Yiping Vil.      1.0000e+00  1.0000e+00     1
+D07 Jianping Vil.    1.0000e+00  1.0000e+00     1
+D06 Xingfu Vil.      4.0000e+00  4.0000e+00     4
+D32 Shanglun Vil.    1.0000e+00  1.0000e+00     1
+D32 Houbi Vil.       1.0000e+00  1.0000e+00     1
+D32 Chenggong Vil.   1.0000e+00  1.0000e+00     1
+D32 Renhe Vil.       1.0000e+00  1.0000e+00     1
+D32 Ren'ai Vil.      1.0000e+00  1.0000e+00     1
+D32 Rende Vil.       4.0000e+00  4.0000e+00     4
+D02 Xingnong Vil.    1.0000e+00  1.0000e+00     1
+D02 Shenggong Vil.   1.0000e+00  1.0000e+00     1
+D32 Xintian Vil.     3.0000e+00  3.0000e+00     3
+D32 Yijia Vil.       3.0000e+00  3.0000e+00     3
+D01 Degao Vil.       4.0000e+00  4.0000e+00     4
+D01 Renhe Vil.       4.0000e+00  4.0000e+00     4
+D32 Zhongzhou Vil.   1.0000e+00  1.0000e+00     1
+D39 Xiwan Vil.       1.0000e+00  1.0000e+00     1
+D39 Jiading Vil.     4.0000e+00  4.0000e+00     4
+D39 Yongkang Vil.    1.0000e+00  1.0000e+00     1
+D39 Zhengqiang Vil.  2.0000e+00  2.0000e+00     2
+D07 Yuguang Vil.     1.0000e+00  1.0000e+00     1
+D07 Jincheng Vil.    1.0000e+00  1.0000e+00     1
+D39 Shangding Vil.   3.0000e+00  3.0000e+00     3
+D39 Fuxing Vil.      3.0000e+00  3.0000e+00     3
+D39 Shenzhou Vil.    3.0000e+00  3.0000e+00     3
+D39 Fuguo Vil.       4.0000e+00  4.0000e+00     4
+D39 Sanhe Vil.       3.0000e+00  4.0000e+00     3
+D39 Fuhua Vil.       4.0000e+00  4.0000e+00     4
+D39 Erwang Vil.      4.0000e+00  4.0000e+00     4
+D01 Dongzhi Vil.     1.0000e+00  1.0000e+00     1
+D02 Da'en Vil.       2.0000e+00  2.0000e+00     2
+D08 Xihu Vil.        4.0000e+00  4.0000e+00     4
+D07 Ping'an Vil.     1.0000e+00  1.0000e+00     1
+D08 Xixian Vil.      1.0000e+00  1.0000e+00     1
+D06 Sicao Vil.       1.0000e+00  1.0000e+00     1
+D06 Andong Vil.      3.0000e+00  4.0000e+00     3
+D06 Yuanzhong Vil.   1.0000e+00  1.0000e+00     1
+D06 Chengxi Vil.     1.0000e+00  1.0000e+00     1
+D06 Diandong Vil.    1.0000e+00  1.0000e+00     1
+D06 Xinshun Vil.     1.0000e+00  2.0000e+00     1
+D39 Xinshu Vil.      1.0000e+00  1.0000e+00     1
+D39 Yanxing  Vil.    2.0000e+00  2.0000e+00     2
+D06 Haixi Vil.       3.0000e+00  3.0000e+00     3
+D06 Dianxi Vil.      1.0000e+00  1.0000e+00     1
+D32 Wenxian Vil.     1.0000e+00  1.0000e+00     1
+D39 Longpu Vil.      1.0000e+00  1.0000e+00     1
+D39 Yongming Vil.    1.0000e+00  1.0000e+00     1
+D02 Yancheng Vil.    4.0000e+00  4.0000e+00     4
+D04 Beihua Vil.      4.0000e+00  4.0000e+00     4
+D04 Huade Vil.       3.0000e+00  3.0000e+00     3
+D04 Fude Vil.        3.0000e+00  3.0000e+00     3
+D04 Zhangsheng Vil.  3.0000e+00  3.0000e+00     3
+D04 Zhangxing Vil.   3.0000e+00  3.0000e+00     3
+D04 Daxing Vil.      4.0000e+00  4.0000e+00     4
+D04 Daguang Vil.     3.0000e+00  4.0000e+00     3
+D04 Xiaobei Vil.     4.0000e+00  4.0000e+00     4
+D04 Shuang'an Vil.   3.0000e+00  3.0000e+00     3
+D04 Liren Vil.       4.0000e+00  4.0000e+00     4
+D08 Xiaoximen Vil.   2.0000e+00  2.0000e+00     2
+D08 Duiyue Vil.      4.0000e+00  4.0000e+00     4
+D08 Wutiaogang Vil.  3.0000e+00  4.0000e+00     3
+D08 Nanmei Vil.      4.0000e+00  4.0000e+00     4
+D07 Wangcheng Vil.   1.0000e+00  1.0000e+00     1
+D07 Tianfei Vil.     2.0000e+00  2.0000e+00     2
+D08 Chenghuang Vil.  2.0000e+00  2.0000e+00     2
+D08 Xihe Vil.        4.0000e+00  4.0000e+00     4
+D04 Beimen Vil.      4.0000e+00  4.0000e+00     4
+D39 Yanzhou  Vil.    1.0000e+00  1.0000e+00     1
+D04 Dongxing Vil.    4.0000e+00  4.0000e+00     4
+D04 Zhongxing Vil.   3.0000e+00  3.0000e+00     3
+D04 Heshun Vil.      2.0000e+00  2.0000e+00     2
+D04 Lixing Vil.      4.0000e+00  4.0000e+00     4
+D04 Wencheng Vil.    3.0000e+00  3.0000e+00     3
+D04 Yuanbao Vil.     3.0000e+00  3.0000e+00     3
+D04 Kaiyuan Vil.     3.0000e+00  3.0000e+00     3
+D04 Chengde Vil.     4.0000e+00  4.0000e+00     4
+D08 Yonghua Vil.     4.0000e+00  2.0000e+00     4
+D08 Junwang Vil.     1.0000e+00  1.0000e+00     1
+D39 Yanxing Vil.     1.0000e+00  1.0000e+00     1
+D04 Yuanmei Vil.     3.0000e+00  3.0000e+00     3
+D08 Nanchang Vil.    1.0000e+00  1.0000e+00     1
+D08 Qiancao Vil.     2.0000e+00  2.0000e+00     2
+D08 Fuqian Vil.      1.0000e+00  1.0000e+00     1
+D08 Nanmen Vil.      1.0000e+00  1.0000e+00     1
+D04 Hexing Vil.      1.0000e+00  1.0000e+00     1
+D39 Beiwan Vil.      1.0000e+00  1.0000e+00     1
+D39 Beixing Vil.     1.0000e+00  1.0000e+00     1
+D39 Longtan Vil.     1.0000e+00  1.0000e+00     1
+D39 Puyuan Vil.      1.0000e+00  2.0000e+00     1
+D39 Sanmin Vil.      1.0000e+00  1.0000e+00     1
+D04 Ren'ai Vil.      2.0000e+00  2.0000e+00     2
+D04 Zhenxing Vil.    1.0000e+00  2.0000e+00     1
+D04 Yongxiang Vil.   4.0000e+00  4.0000e+00     4
+D04 Wenyuan Vil.     4.0000e+00  4.0000e+00     4
+D08 Kaishan Vil.     1.0000e+00  2.0000e+00     1
+D08 Daliang Vil.     1.0000e+00  1.0000e+00     1
+D08 Yaowang Vil.     4.0000e+00  4.0000e+00     4
+D08 Guangxian Vil.   4.0000e+00  4.0000e+00     4
+D32 Erxing Vil.      1.0000e+00  1.0000e+00     1
+D32 Dajia Vil.       1.0000e+00  1.0000e+00     1
+D32 Renyi Vil.       2.0000e+00  2.0000e+00     2
+D32 Tuku Vil.        1.0000e+00  1.0000e+00     1
+D32 Taizi Vil.       1.0000e+00  1.0000e+00     1
+D06 Anxi Vil.        4.0000e+00  4.0000e+00     4
+D06 Da'an Vil.       4.0000e+00  4.0000e+00     4
+D06 Anhe Vil.        1.0000e+00  2.0000e+00     1
+D06 Lixiang Vil.     4.0000e+00  4.0000e+00     4
+D06 Anqing Vil.      4.0000e+00  4.0000e+00     4
+D06 Meihua Vil.      4.0000e+00  4.0000e+00     4
+D06 Ding'an Vil.     4.0000e+00  4.0000e+00     4
+D06 Anshun Vil.      1.0000e+00  1.0000e+00     1
+D06 Zongtou Vil.     1.0000e+00  1.0000e+00     1
+D06 Yuandian Vil.    1.0000e+00  1.0000e+00     1
+D06 Donghe Vil.      1.0000e+00  1.0000e+00     1
+D39 Guangfu Vil.     1.0000e+00  1.0000e+00     1
+D39 Shengli Vil.     4.0000e+00  4.0000e+00     4
+D39 Jianguo Vil.     3.0000e+00  3.0000e+00     3
+D39 Liuhe Vil.       4.0000e+00  4.0000e+00     4
+D06 Yuanxi Vil.      1.0000e+00  1.0000e+00     1
+D06 Chang'an Vil.    1.0000e+00  1.0000e+00     1
+D39 Zhonghua Vil.    4.0000e+00  4.0000e+00     4
+D39 Chenggong Vil.   3.0000e+00  3.0000e+00     3
+D39 Zhongxing Vil.   3.0000e+00  3.0000e+00     3
+D39 Xishi Vil.       1.0000e+00  1.0000e+00     1
+D39 Niaosong Vil.    1.0000e+00  1.0000e+00     1
+D06 Xiangong Vil.    1.0000e+00  1.0000e+00     1
+D06 Zhounan Vil.     1.0000e+00  1.0000e+00     1
+D06 Budai Vil.       1.0000e+00  1.0000e+00     1
+D06 Zhoubei Vil.     1.0000e+00  1.0000e+00     1
+D06 Wennan Vil.      1.0000e+00  1.0000e+00     1
+D06 Gongwen Vil.     1.0000e+00  1.0000e+00     1
+D06 Nanxing Vil.     1.0000e+00  1.0000e+00     1
+D07 Yizai Vil.       1.0000e+00  1.0000e+00     1
+D07 Pingtong Vil.    2.0000e+00  2.0000e+00     2
+D06 Haidong Vil.     4.0000e+00  4.0000e+00     4</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb77"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb77-1"><a href="#cb77-1" aria-hidden="true" tabindex="-1"></a>localMI.map <span class="ot">&lt;-</span> <span class="fu">tm_shape</span>(localMoranData) <span class="sc">+</span></span>
+<span id="cb77-2"><a href="#cb77-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_fill</span>(<span class="at">col =</span> <span class="st">"ii"</span>, </span>
+<span id="cb77-3"><a href="#cb77-3" aria-hidden="true" tabindex="-1"></a>          <span class="at">style =</span> <span class="st">"pretty"</span>, </span>
+<span id="cb77-4"><a href="#cb77-4" aria-hidden="true" tabindex="-1"></a>          <span class="at">title =</span> <span class="st">"local moran statistics"</span>) <span class="sc">+</span></span>
+<span id="cb77-5"><a href="#cb77-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_borders</span>(<span class="at">alpha =</span> <span class="fl">0.5</span>)</span>
+<span id="cb77-6"><a href="#cb77-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb77-7"><a href="#cb77-7" aria-hidden="true" tabindex="-1"></a>pvalue.map <span class="ot">&lt;-</span> <span class="fu">tm_shape</span>(localMoranData) <span class="sc">+</span></span>
+<span id="cb77-8"><a href="#cb77-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_fill</span>(<span class="at">col =</span> <span class="st">"p_ii"</span>, </span>
+<span id="cb77-9"><a href="#cb77-9" aria-hidden="true" tabindex="-1"></a>          <span class="at">breaks=</span><span class="fu">c</span>(<span class="sc">-</span><span class="cn">Inf</span>, <span class="fl">0.001</span>, <span class="fl">0.01</span>, <span class="fl">0.05</span>, <span class="fl">0.1</span>, <span class="cn">Inf</span>),</span>
+<span id="cb77-10"><a href="#cb77-10" aria-hidden="true" tabindex="-1"></a>          <span class="at">palette=</span><span class="st">"-Blues"</span>, </span>
+<span id="cb77-11"><a href="#cb77-11" aria-hidden="true" tabindex="-1"></a>          <span class="at">title =</span> <span class="st">"local Moran's I p-values"</span>) <span class="sc">+</span></span>
+<span id="cb77-12"><a href="#cb77-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_borders</span>(<span class="at">alpha =</span> <span class="fl">0.5</span>)</span>
+<span id="cb77-13"><a href="#cb77-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb77-14"><a href="#cb77-14" aria-hidden="true" tabindex="-1"></a><span class="fu">tmap_arrange</span>(localMI.map, pvalue.map, <span class="at">asp=</span><span class="dv">1</span>, <span class="at">ncol=</span><span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Variable(s) "ii" contains positive and negative values, so midpoint is set to 0. Set midpoint = NA to show the full spectrum of the color palette.</code></pre>
+</div>
+<div class="cell-output-display">
+<p><img src="take_home_Ex02_files/figure-html/unnamed-chunk-49-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>What does this tell us?</p>
+</section>
+</section>
+</section>
+<section id="creating-lisa-cluster-map" class="level1">
+<h1>Creating Lisa cluster map</h1>
+<section id="plotting-moran-scatter-plot" class="level2">
+<h2 class="anchored" data-anchor-id="plotting-moran-scatter-plot">Plotting Moran Scatter Plot</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb79"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb79-1"><a href="#cb79-1" aria-hidden="true" tabindex="-1"></a>lisa <span class="ot">&lt;-</span> <span class="fu">unnest</span>(localMoran)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: `cols` is now required when using `unnest()`.
+ℹ Please use `cols = c()`.</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb81"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb81-1"><a href="#cb81-1" aria-hidden="true" tabindex="-1"></a>lisa</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 257 × 12
+        ii       eii  var_ii    z_ii    p_ii p_ii_sim p_folded_sim skewness
+     &lt;dbl&gt;     &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;    &lt;dbl&gt;        &lt;dbl&gt;    &lt;dbl&gt;
+ 1  1.40   -0.0798   0.618    1.89   0.0591      0.02         0.01  -0.862 
+ 2  0.757  -0.0270   0.154    2.00   0.0456      0.04         0.02  -0.590 
+ 3  0.0349  0.0213   0.0493   0.0611 0.951       0.92         0.46   0.0879
+ 4 -0.214   0.0247   0.0838  -0.826  0.409       0.36         0.18  -0.539 
+ 5  1.43    0.00382  0.308    2.57   0.0101      0.02         0.01  -0.377 
+ 6  1.30    0.0168   0.204    2.83   0.00462     0.02         0.01  -0.655 
+ 7  0.326  -0.000292 0.0960   1.05   0.292       0.32         0.16  -0.839 
+ 8  0.0206 -0.0321   0.0170   0.404  0.686       0.68         0.34  -0.211 
+ 9  0.403   0.0136   0.0791   1.38   0.166       0.18         0.09   0.520 
+10  0.0864  0.00637  0.00325  1.40   0.160       0.1          0.05  -0.722 
+# ℹ 247 more rows
+# ℹ 4 more variables: kurtosis &lt;dbl&gt;, mean &lt;fct&gt;, median &lt;fct&gt;, pysal &lt;fct&gt;</code></pre>
+</div>
+</div>
+<p>** Continue with sf dep - skip first</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb83"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb83-1"><a href="#cb83-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tmap_arrange</span>(localMI.map, pvalue.map, <span class="at">asp=</span><span class="dv">1</span>, <span class="at">ncol=</span><span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 
 
