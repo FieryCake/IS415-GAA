@@ -36,7 +36,7 @@ website:
           - text: "Take home exercise 1"
             href: "take_home_Ex/take_home_Ex_01/take_home_Ex_01.html"
           - text: "Take home exercise 2"
-            href: "take_home_Ex/take_home_Ex_02/take_home_Ex_02.html"
+            href: "take_home_Ex/take_home_Ex_02/take_home_Ex02.html"
 
     right:
       - href: index.qmd
