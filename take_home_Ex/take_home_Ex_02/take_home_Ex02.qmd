@@ -1,38 +1,46 @@
-# Importing the packages
+# Take home assignment 2 - Glenn
 
+
+# 1.0 The Task
+The specific tasks of this take-home exercise are as follows:
+
+-Using appropriate function of sf and tidyverse, preparing the following geospatial data layer:
+1. a study area layer in sf polygon features. It must be at village level and confined to the D01, D02, D04, D06, D07, D08, D32 and D39 counties of Tainan City, Taiwan.
+2. a dengue fever layer within the study area in sf point features. The dengue fever cases should be confined to epidemiology week 31-50, 2023.
+3. a derived dengue fever layer in spacetime s3 class of sfdep. It should contain, among many other useful information, a data field showing number of dengue fever cases by village and by epidemiology week.
+
+-Using the extracted data, perform global spatial autocorrelation analysis by using sfdep methods.
+-Using the extracted data, perform local spatial autocorrelation analysis by using sfdep methods.
+-Using the extracted data, perform emerging hotspot analysis by using sfdep methods.
+-Describe the spatial patterns revealed by the analysis above.
+
+# 2.0 Importing the packages
 ```{r}
 pacman::p_load(sf, sfdep, tmap, plotly, tidyverse,spdep)
 ```
 
-# Data Wrangling
+# 3.0 Data Wrangling
 
-# Importing the data 1.0
-
-## Tainan
-
+## 3.1 Importing the data (Tainan)
 ```{r}
 tainan <- st_read(dsn = "data/geospatial", 
                  layer = "TAINAN_VILLAGE") %>% st_transform(crs = 3824)
 ```
-
 ```{r}
 plot(st_geometry(tainan))
 ```
 
-## Dengue Daily
-
+## 3.2 Importing the data (Dengue Daily)
 ```{r}
 dengue <- read_csv("data/aspatial/Dengue_Daily.csv")
 ```
 
-## Making the list of towns required - Found in assignment brief
-
+## 3.3 Making the list of towns required - Found in assignment brief
 ```{r}
 town_ids <- c("D01","D02","D04","D06","D07","D08","D32","D39")
 ```
 
-## Filtering tainan villages based on the above list
-
+## 3.3.1 Filtering tainan villages based on the above list
 ```{r}
 tainan_filtered_villages <- tainan %>%
   filter(TOWNID %in% town_ids)
@@ -42,55 +50,51 @@ tainan_filtered_villages <- tainan %>%
 tainan_filtered_villages
 ```
 
-## Plotting the map to see if it is what we want
-
+We then plot out the map to see if the area is the same as shown in class
 ```{r}
 plot(st_geometry(tainan_filtered_villages))
 ```
 
-## Filtering dengue dataset to only fall between epidemiology week 31-50, 2023.
+## 3.4 Filtering dengue dataset to only fall between epidemiology week 31-50, 2023.
 
-### Changing first column to transmit date - easier
-
+### 3.4.1 Changing first column to transmit date - easier
 ```{r}
 colnames(dengue)[1] <- "transmit_date"
 ```
 
-### Changing column type to date
-
+### 3.4.2 Changing column type to date
 ```{r}
 dengue$transmit_date <- as.Date(dengue$transmit_date)
 ```
 
-### Filtering for week 31 - 50
-
+### 3.4.3 Filtering for week 31 - 50
 Epidemoiology weeks source- https://www.hpsc.ie/notifiablediseases/resources/epidemiologicalweeks/
-
 ```{r}
 dengue_filtered <- dengue %>% filter(between(transmit_date, as.Date('2023-07-30'), as.Date('2023-12-16')))
+
+dengue_filtered$week_number <- week(dengue_filtered$transmit_date) - week('2023-07-30') + 1
+
+print(dengue_filtered)
 ```
 
-### Only keeping date transmit , lat and long
-
+### 3.4.4 Only keeping date transmit , lat and long
 ```{r}
-dengue_filtered <- select(dengue_filtered,1,10,11)
+dengue_filtered <- select(dengue_filtered,1,10,11,27)
 colnames(dengue_filtered)[2] <- "lng"
 colnames(dengue_filtered)[3] <- "lat"
 ```
 
-## Checking of CRS 1.1
-
+We check the CRS of our dataset to see if it is correct. Correct CRS should be TWD97, not WSG84
 ```{r}
 st_crs(tainan_filtered_villages)
 ```
 
-# Joining the data of filtered village and dengue
-
+## 3.5 Joining the data of filtered village and dengue
 ```{r}
 dengue_filtered
 ```
 
-### Changing class from character to numeric
+### 3.5.1 Changing class from character to numeric
 
 ```{r}
 dengue_filtered$lng <- as.numeric(dengue_filtered$lng)
@@ -99,42 +103,38 @@ dengue_filtered$lat <- as.numeric(dengue_filtered$lat)
 
 NA Values are introduced and we have to remove them
 
-### Removing NA Values
-
+### 3.5.2 Removing NA Values
 ```{r}
 dengue_filtered_complete <- na.omit(dengue_filtered)
 ```
 
-### Transforming from decimal point to 3824
-
+### 3.5.3 Transforming from decimal point to 3824
 ```{r}
 
 sf_object <- st_as_sf(dengue_filtered_complete, coords = c("lng", "lat"), crs = 4326) %>% st_transform(crs = 3824)
 ```
 
-## Finding the intercept
+## 3.6 Finding the intercept
 
-### Making it a union so that finding points within this union is faster
-
+###  3.6.1 Making it a union so that finding points within this union is faster
 ```{r}
 merged_polygon <- st_union(tainan_filtered_villages)
 ```
 
+We check the classes of the objects to know what we are working with
 ```{r}
 class(merged_polygon)
 class(sf_object)
 ```
 
-## Intersection
-
+### 3.6.2 Intersection
 ```{r}
 denguePointsInTainan <- st_intersection(sf_object, merged_polygon)
 ```
-
 This one is to filter points found only in big polygon - it is faster than finding points in each polygon first
 
-## Finding points that fall within the different vilages, concetenating TOWNID and VILL ENG
 
+### 3.6.3 Finding points that fall within the different vilages, concetenating TOWNID and VILL ENG
 ```{r}
 #| eval: false
 
@@ -145,20 +145,23 @@ town_dengue_intersections <- st_intersection(denguePointsInTainan, tainan_filter
 
 Comment: Finding intersection of each point mapped to each town Will need to push it into a rds as it takes very long to compute
 
-## Write to RDS
-
+### 3.6.4 Write to RDS
 ```{r}
 #| eval: false
 write_rds(town_dengue_intersections,"data/rds/town_dengue_intersections.rds")
 ```
 
-## Read from RDS
-
+### 3.6.5 Read from RDS
 ```{r}
 town_dengue_intersections_rds <-read_rds("data/rds/town_dengue_intersections.rds")
-town_dengue_intersections_rds <- select(town_dengue_intersections_rds,1,13)
 ```
 
+### 3.6.5 We only select the required fields which are Week number, town and transmit date
+```{r}
+town_dengue_intersections_rds <- select(town_dengue_intersections_rds,1,2,13)
+```
+
+## 3.7 Plots
 ```{r}
 plot(denguePointsInTainan)
 ```
@@ -171,12 +174,11 @@ tm_shape(tainan_filtered_villages) +tm_polygons()+
 tm_shape(denguePointsInTainan) +tm_dots()+tm_compass(type="8star",size=2)+tm_scale_bar()+tm_grid(alpha=0.2)
 ```
 
-## Joining the 2 datasets together
-
+## 3.8 Joining the 2 datasets together
 ```{r}
 df <- st_drop_geometry(town_dengue_intersections_rds)
 df <- data.frame(df)
-colnames(df)[2] <- "town"
+colnames(df)[3] <- "town"
 
 
 tainan_filtered_villages <- tainan_filtered_villages %>%
@@ -188,40 +190,42 @@ test2 <- left_join(df,tainan_filtered_villages2)
 
 Steps: First i drop the geometric points as i already have town (comprises of TOWNID and village eng) - to seperate village level
 
-next, i mutate tainan_filtered_village (Map) to combine TownID and village eng too
+Next, i mutate tainan_filtered_village (Map) to combine TownID and village eng too
 
 Left join the 2 data sets and filter those columns that i want
 
 Joining these 2 will result in date transmitted, town, and other details like geometry etc.
 
-## Calculating frequency
+## 3.9 Calculating frequency
 
 ```{r}
 town_frequency <- test2 %>%
   group_by(town) %>%
   summarise(frequency = n())
-
-
 ```
 
-## Joining the data
-
 ```{r}
+town_frequency2 <- test2 %>%
+  group_by(town,week_number) %>%
+  summarise(frequency = n())
+```
+What this does is to calculate the number of "frequency". Frequency count will count number of cases there is a transmit date. We calculate frequency for town_frequency dataset (group only by town) and town_frequency2 (group by town and week number). Group by town and week number for spatio temporal while group by town will be for Global Measures of Spatial Autocorrelation
 
+### 3.9.2 Joining the data
+```{r}
 test3 <- left_join(test2, town_frequency)
-
+test4 <-left_join(test2,town_frequency2)
 class(test3)
 
 unique_data <- test3 %>%
   distinct(town, .keep_all = TRUE)
 
 test3_sf <- st_as_sf(unique_data)
-
-test4_sf <- st_as_sf(test3)
+test4_sf <- st_as_sf(test4)
 ```
+The end result of this join will be a dataset, each row indicating Week, town, number of transmit for that week for that town and the geometry
 
-## Visualising Regional Development Indicator
-
+### 3.9.3 Visualising Regional Development Indicator
 ```{r}
 equal <- tm_shape(test3_sf) +
   tm_fill("frequency",n=5,  style = "equal") +
@@ -239,11 +243,12 @@ tmap_arrange(equal,
              ncol=2)
 
 ```
+Insight:
+What we can see here is that quantile frequency binning is more effective for visualizing frequency of transmit. Transmit frequency is very high in the ceter region of tainan
 
-# Global Measures of Spatial Autocorrelation
+# 4 Global Measures of Spatial Autocorrelation
 
-## Computing wm_q and writing to rds
-
+## 4.1 Computing wm_q and writing to rds
 ```{r}
 #| eval: true
 wm_q<-test3_sf %>% mutate(nb=st_contiguity(geometry), wt=st_weights(nb,style="W"),.before=1)
@@ -254,14 +259,11 @@ wm_q<-test3_sf %>% mutate(nb=st_contiguity(geometry), wt=st_weights(nb,style="W"
 write_rds(wm_q,"data/rds/wm_qs.rds")
 ```
 
-## Reading wm_q rds
-
 ```{r}
 wm_q <-read_rds("data/rds/wm_qs.rds")
 ```
 
-## Morans test
-
+## 4.2 Morans test
 ```{r}
 global_moran_test(wm_q$frequency,wm_q$nb, wm_q$wt)
 ```
@@ -282,7 +284,7 @@ summary(bperm$res[1:99])
 bperm
 ```
 
-## Visualising Monte-carlo moran's test
+### 4.2.2 Visualising Monte-carlo moran's test
 
 ```{r}
 hist(bperm$res, 
@@ -295,7 +297,7 @@ abline(v=0,
 
 Results of the moran's test indicate that there is strong evidence to suggest that there is significant spatial autocorrelation the data. ( p values \< 2.2e-16)
 
-## Geary C
+### 4.2.3 Geary C
 
 Arguments are the same as Moran (x, nb, wt, nsim)
 
@@ -321,6 +323,8 @@ abline(v=1, col="red")
 
 Results of the geary c test indicate that there is strong evidence to suggest that there is significant spatial autocorrelation the data. ( p values \< 0.01) - Positive spatial autocorrelation.
 
+
+### 4.2.4 Compute Moran correlogram
 ```{r}
 #| eval: true
 MI_corr <- sp.correlogram(wm_q$nb, 
@@ -330,11 +334,19 @@ MI_corr <- sp.correlogram(wm_q$nb,
                           style="W")
 plot(MI_corr)
 ```
+### 4.2.5 Compute geary C correlogram
+```{r}
+GC_corr <- sp.correlogram(wm_q$nb, 
+                          wm_q$frequency, 
+                          order=6, 
+                          method="C", 
+                          style="W")
+plot(GC_corr)
+```
 
-# Local Measures of Spatial Autocorrelation (Cluster and Outlier Analysis)
+# 5 Local Measures of Spatial Autocorrelation (Cluster and Outlier Analysis)
 
-## Local moran
-
+## 5.1 Local moran
 ```{r}
 localMoran = local_moran(wm_q$frequency,
                   wm_q$nb, 
@@ -354,8 +366,7 @@ unique_data[4]
 localMoran
 ```
 
-### joining Local moran results and wm_q
-
+### 5.1.1 joining Local moran results and wm_q
 ```{r}
 localMoranData <- cbind(test3_sf[2], localMoran)
 ```
@@ -371,6 +382,7 @@ printCoefmat(data.frame(
   check.names=FALSE)
 ```
 
+### 5.1.2 Mapping local moran 
 ```{r}
 localMI.map <- tm_shape(localMoranData) +
   tm_fill(col = "ii", 
@@ -390,27 +402,11 @@ tmap_arrange(localMI.map, pvalue.map, asp=1, ncol=2)
 
 What does this tell us?
 
-# Creating Lisa cluster map
-
-## Plotting Moran Scatter Plot
-
-```{r}
-lisa <- unnest(localMoran)
-lisa
-```
-
-\*\* Continue with sf dep - skip first
-
-```{r}
-#| eval: false
-
-tmap_arrange(localMI.map, pvalue.map, asp=1, ncol=2)
-```
-
-
-
-# Hot Spot and Cold Spot Area Analysis
+# 6.0 Hot Spot and Cold Spot Area Analysis
 If we were to use the lab example, we have to compute centroid, cut off distance, adaptive weight matrix before we can calculate Gi. However, with the use of sfdep packages, we can now do that with less steps. 
+Source - https://sfdep.josiahparry.com/articles/understanding-emerging-hotspots
+
+## 6.1 Calculating the local Gi*
 ```{r}
 getis_nb <- test3_sf |> 
   mutate(
@@ -427,6 +423,7 @@ gistar <- getis_nb |>
 gistar
 ```
 
+## 6.2 Mapping local Gi*
 ```{r}
 gistar |> 
   mutate(cluster = case_when(
@@ -443,49 +440,97 @@ gistar |>
 ```
 
 
-# Space time and space cubes
+# 7 Space time and space cubes
+Source- https://sfdep.josiahparry.com/articles/spacetime-s3
+
+## 7.1 Filtering data that we need 
 ```{r}
-spt <- as_spacetime(test3_sf, "town", "transmit_date")
+test4_sf <- test4_sf %>%
+  distinct(town,week_number, .keep_all = TRUE)
+
+test5_sf <- test4_sf%>% select(week_number,town,frequency)
 ```
 
+## 7.2 Creating a space time object
 ```{r}
-df2 <- sf::st_drop_geometry(test3_sf)
-geo <- select(test3_sf, town)
-
-head(df2)
-```
-
-```{r}
-spt <- spacetime(
-  .data = df2, 
-  .geometry = geo, 
-  .loc_col = "town", 
-  .time_col = "transmit_date"
-  ) 
-
-spt
-
-```
-
-```{r}
+spt <- as_spacetime(test5_sf, "town", "week_number")
 activate(spt, "data")
+```
+### 7.2.1 Spacetime Contexts
+```{r}
 spt |> 
   activate("geometry") 
+
+is_spacetime_cube(spt)
+```
+
+```{r}
+spt_complete <- complete_spacetime_cube(spt)
+```
+### 7.3.2 Replacing all N.A values with 0 
+```{r}
+
+spt_complete <- complete_spacetime_cube(spt)
+spt_complete <- spt_complete %>%
+  mutate(frequency = ifelse(is.na(frequency), 0, frequency))
+```
+
+I kept running into an error and i think its due to NA values in the frequency column. After i replaced the NA values, i didnt not run into that error anymore
+
+
+## 7.4 Emerging hotspot analysis
+```{r}
+emerging_hotspot<- emerging_hotspot_analysis(spt_complete, "frequency", threshold = 0.05)
+```
+
+```{r}
+head(emerging_hotspot)
+```
+
+## 7.5 Emerging hotspot analysis
+Source - https://is415-gaa-tskam.netlify.app/in-class_ex/in-class_ex05/in-class_ex05-ehsa
+```{r}
+#| eval: false
+ehsa <- emerging_hotspot_analysis(
+  x = spt_complete, 
+  .var = "frequency", 
+  k = 1, 
+  nsim = 99
+)
+```
+
+```{r}
+#| eval: false
+write_rds(ehsa,"data/rds/ehsa.rds")
+```
+
+```{r}
+ehsa <-read_rds("data/rds/ehsa.rds")
+```
+
+### 7.5.1 Visualising the distribution of EHSA classes
+```{r}
+ggplot(data = ehsa,
+       aes(x = classification)) +
+  geom_bar()
+```
+
+## 7.6 Visualising EHSA
+```{r}
+dengue_ehsa <- test3_sf %>%
+  left_join(ehsa,
+            by = join_by(town == location))
 ```
 
 
 ```{r}
-is_spacetime_cube(spt)
-sparse_spt <- dplyr::slice_sample(spt, n = 800)
-
-is_spacetime_cube(sparse_spt)
-
-sparse_spt <- dplyr::slice_sample(spt, n = 800)
-
-is_spacetime_cube(sparse_spt)
-
-spt_complete <- complete_spacetime_cube(sparse_spt)
-
-is_spacetime_cube(spt_complete)
-
+ehsa_sig <- dengue_ehsa  %>%
+  filter(p_value < 0.05)
+tmap_mode("plot")
+tm_shape(dengue_ehsa) +
+  tm_polygons() +
+  tm_borders(alpha = 0.5) +
+tm_shape(ehsa_sig) +
+  tm_fill("classification") + 
+  tm_borders(alpha = 0.4)
 ```
