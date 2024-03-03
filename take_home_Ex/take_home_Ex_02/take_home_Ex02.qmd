@@ -1,20 +1,22 @@
-# Take home assignment 2 - Glenn
-
+---
+title: "Take home assignment 2 - Glenn"
+execute: 
+  warning: false
+  #eval: false
+  
+date: "r Sys.Date()`"
+---
 
 # 1.0 The Task
+
 The specific tasks of this take-home exercise are as follows:
 
--Using appropriate function of sf and tidyverse, preparing the following geospatial data layer:
-1. a study area layer in sf polygon features. It must be at village level and confined to the D01, D02, D04, D06, D07, D08, D32 and D39 counties of Tainan City, Taiwan.
-2. a dengue fever layer within the study area in sf point features. The dengue fever cases should be confined to epidemiology week 31-50, 2023.
-3. a derived dengue fever layer in spacetime s3 class of sfdep. It should contain, among many other useful information, a data field showing number of dengue fever cases by village and by epidemiology week.
+-Using appropriate function of sf and tidyverse, preparing the following geospatial data layer: 1. a study area layer in sf polygon features. It must be at village level and confined to the D01, D02, D04, D06, D07, D08, D32 and D39 counties of Tainan City, Taiwan. 2. a dengue fever layer within the study area in sf point features. The dengue fever cases should be confined to epidemiology week 31-50, 2023. 3. a derived dengue fever layer in spacetime s3 class of sfdep. It should contain, among many other useful information, a data field showing number of dengue fever cases by village and by epidemiology week.
 
--Using the extracted data, perform global spatial autocorrelation analysis by using sfdep methods.
--Using the extracted data, perform local spatial autocorrelation analysis by using sfdep methods.
--Using the extracted data, perform emerging hotspot analysis by using sfdep methods.
--Describe the spatial patterns revealed by the analysis above.
+-Using the extracted data, perform global spatial autocorrelation analysis by using sfdep methods. -Using the extracted data, perform local spatial autocorrelation analysis by using sfdep methods. -Using the extracted data, perform emerging hotspot analysis by using sfdep methods. -Describe the spatial patterns revealed by the analysis above.
 
 # 2.0 Importing the packages
+
 ```{r}
 pacman::p_load(sf, sfdep, tmap, plotly, tidyverse,spdep)
 ```
@@ -22,74 +24,95 @@ pacman::p_load(sf, sfdep, tmap, plotly, tidyverse,spdep)
 # 3.0 Data Wrangling
 
 ## 3.1 Importing the data (Tainan)
+
 ```{r}
 tainan <- st_read(dsn = "data/geospatial", 
                  layer = "TAINAN_VILLAGE") %>% st_transform(crs = 3824)
 ```
+
 ```{r}
 plot(st_geometry(tainan))
 ```
 
+We plot the map of tainan and see that it is not the same as shown in class. This is because it includes all the regions and tainan. We have to filter the dataset accordingly in later code so that we get the correct area.
+
 ## 3.2 Importing the data (Dengue Daily)
+
 ```{r}
 dengue <- read_csv("data/aspatial/Dengue_Daily.csv")
 ```
 
 ## 3.3 Making the list of towns required - Found in assignment brief
+
 ```{r}
 town_ids <- c("D01","D02","D04","D06","D07","D08","D32","D39")
 ```
 
+town_ids is a list of towns, as mentioned in the assignment brief on the website
+
 ## 3.3.1 Filtering tainan villages based on the above list
+
 ```{r}
 tainan_filtered_villages <- tainan %>%
   filter(TOWNID %in% town_ids)
 ```
+
+We then filter our dataset to only include those towns that are provided in the list
 
 ```{r}
 tainan_filtered_villages
 ```
 
 We then plot out the map to see if the area is the same as shown in class
+
 ```{r}
 plot(st_geometry(tainan_filtered_villages))
 ```
 
+After filtering the dataset, we can see that the plot is indeed the same as the one shown in class.
+
 ## 3.4 Filtering dengue dataset to only fall between epidemiology week 31-50, 2023.
 
 ### 3.4.1 Changing first column to transmit date - easier
+
 ```{r}
 colnames(dengue)[1] <- "transmit_date"
 ```
 
 ### 3.4.2 Changing column type to date
+
 ```{r}
 dengue$transmit_date <- as.Date(dengue$transmit_date)
 ```
 
 ### 3.4.3 Filtering for week 31 - 50
+
 Epidemoiology weeks source- https://www.hpsc.ie/notifiablediseases/resources/epidemiologicalweeks/
+
 ```{r}
 dengue_filtered <- dengue %>% filter(between(transmit_date, as.Date('2023-07-30'), as.Date('2023-12-16')))
 
 dengue_filtered$week_number <- week(dengue_filtered$transmit_date) - week('2023-07-30') + 1
 
-print(dengue_filtered)
+head(dengue_filtered)
 ```
 
-### 3.4.4 Only keeping date transmit , lat and long
+### 3.4.4 Only keeping date transmit , lat and long and week_number
+
 ```{r}
 dengue_filtered <- select(dengue_filtered,1,10,11,27)
 colnames(dengue_filtered)[2] <- "lng"
 colnames(dengue_filtered)[3] <- "lat"
 ```
 
-We check the CRS of our dataset to see if it is correct. Correct CRS should be TWD97, not WSG84
 ```{r}
 st_crs(tainan_filtered_villages)
 ```
 
+We check the CRS of our dataset to see if it is correct. Correct CRS should be TWD97, not WSG84
+
 ## 3.5 Joining the data of filtered village and dengue
+
 ```{r}
 dengue_filtered
 ```
@@ -101,40 +124,50 @@ dengue_filtered$lng <- as.numeric(dengue_filtered$lng)
 dengue_filtered$lat <- as.numeric(dengue_filtered$lat)
 ```
 
-NA Values are introduced and we have to remove them
-
 ### 3.5.2 Removing NA Values
+
 ```{r}
 dengue_filtered_complete <- na.omit(dengue_filtered)
 ```
 
+NA Values are introduced and we have to remove them
+
 ### 3.5.3 Transforming from decimal point to 3824
+
 ```{r}
 
 sf_object <- st_as_sf(dengue_filtered_complete, coords = c("lng", "lat"), crs = 4326) %>% st_transform(crs = 3824)
 ```
 
+Looking at the lat and long, we know that the numbers are in decimal point degree. We have to tell R that it is in crs 4326 and we have to change it to 3824
+
 ## 3.6 Finding the intercept
 
-###  3.6.1 Making it a union so that finding points within this union is faster
+### 3.6.1 Making it a union so that finding points within this union is faster
+
 ```{r}
 merged_polygon <- st_union(tainan_filtered_villages)
 ```
 
+First i make a union of all the villages
+
 We check the classes of the objects to know what we are working with
+
 ```{r}
 class(merged_polygon)
 class(sf_object)
 ```
 
 ### 3.6.2 Intersection
+
 ```{r}
 denguePointsInTainan <- st_intersection(sf_object, merged_polygon)
 ```
+
 This one is to filter points found only in big polygon - it is faster than finding points in each polygon first
 
-
 ### 3.6.3 Finding points that fall within the different vilages, concetenating TOWNID and VILL ENG
+
 ```{r}
 #| eval: false
 
@@ -146,22 +179,28 @@ town_dengue_intersections <- st_intersection(denguePointsInTainan, tainan_filter
 Comment: Finding intersection of each point mapped to each town Will need to push it into a rds as it takes very long to compute
 
 ### 3.6.4 Write to RDS
+
 ```{r}
 #| eval: false
 write_rds(town_dengue_intersections,"data/rds/town_dengue_intersections.rds")
 ```
 
+We can see from the map here that most of the points are located in the center.
+
 ### 3.6.5 Read from RDS
+
 ```{r}
 town_dengue_intersections_rds <-read_rds("data/rds/town_dengue_intersections.rds")
 ```
 
 ### 3.6.5 We only select the required fields which are Week number, town and transmit date
+
 ```{r}
 town_dengue_intersections_rds <- select(town_dengue_intersections_rds,1,2,13)
 ```
 
 ## 3.7 Plots
+
 ```{r}
 plot(denguePointsInTainan)
 ```
@@ -175,6 +214,7 @@ tm_shape(denguePointsInTainan) +tm_dots()+tm_compass(type="8star",size=2)+tm_sca
 ```
 
 ## 3.8 Joining the 2 datasets together
+
 ```{r}
 df <- st_drop_geometry(town_dengue_intersections_rds)
 df <- data.frame(df)
@@ -209,9 +249,11 @@ town_frequency2 <- test2 %>%
   group_by(town,week_number) %>%
   summarise(frequency = n())
 ```
+
 What this does is to calculate the number of "frequency". Frequency count will count number of cases there is a transmit date. We calculate frequency for town_frequency dataset (group only by town) and town_frequency2 (group by town and week number). Group by town and week number for spatio temporal while group by town will be for Global Measures of Spatial Autocorrelation
 
 ### 3.9.2 Joining the data
+
 ```{r}
 test3 <- left_join(test2, town_frequency)
 test4 <-left_join(test2,town_frequency2)
@@ -223,9 +265,11 @@ unique_data <- test3 %>%
 test3_sf <- st_as_sf(unique_data)
 test4_sf <- st_as_sf(test4)
 ```
+
 The end result of this join will be a dataset, each row indicating Week, town, number of transmit for that week for that town and the geometry
 
 ### 3.9.3 Visualising Regional Development Indicator
+
 ```{r}
 equal <- tm_shape(test3_sf) +
   tm_fill("frequency",n=5,  style = "equal") +
@@ -243,12 +287,13 @@ tmap_arrange(equal,
              ncol=2)
 
 ```
-Insight:
-What we can see here is that quantile frequency binning is more effective for visualizing frequency of transmit. Transmit frequency is very high in the ceter region of tainan
+
+Insight: What we can see here is that quantile frequency binning is more effective for visualizing frequency of transmit. Transmit frequency is very high in the ceter region of tainan
 
 # 4 Global Measures of Spatial Autocorrelation
 
 ## 4.1 Computing wm_q and writing to rds
+
 ```{r}
 #| eval: true
 wm_q<-test3_sf %>% mutate(nb=st_contiguity(geometry), wt=st_weights(nb,style="W"),.before=1)
@@ -264,6 +309,7 @@ wm_q <-read_rds("data/rds/wm_qs.rds")
 ```
 
 ## 4.2 Morans test
+
 ```{r}
 global_moran_test(wm_q$frequency,wm_q$nb, wm_q$wt)
 ```
@@ -295,7 +341,7 @@ abline(v=0,
        col="red") 
 ```
 
-Results of the moran's test indicate that there is strong evidence to suggest that there is significant spatial autocorrelation the data. ( p values \< 2.2e-16)
+**Results of the moran's test indicate that there is strong evidence to suggest that there is significant spatial autocorrelation the data. ( p values \< 2.2e-16)**
 
 ### 4.2.3 Geary C
 
@@ -321,10 +367,10 @@ hist(gperm$res, freq=TRUE, breaks=20, xlab="Simulated Geary c")
 abline(v=1, col="red") 
 ```
 
-Results of the geary c test indicate that there is strong evidence to suggest that there is significant spatial autocorrelation the data. ( p values \< 0.01) - Positive spatial autocorrelation.
-
+**Results of the geary c test indicate that there is strong evidence to suggest that there is significant spatial autocorrelation the data. ( p values \< 0.01) - Positive spatial autocorrelation.**
 
 ### 4.2.4 Compute Moran correlogram
+
 ```{r}
 #| eval: true
 MI_corr <- sp.correlogram(wm_q$nb, 
@@ -334,7 +380,11 @@ MI_corr <- sp.correlogram(wm_q$nb,
                           style="W")
 plot(MI_corr)
 ```
+
+As we can see from the correlogram above, the higher the lag, the lower the Moran's I value. This means that as the lag distance increases between different towns / villages, spatial autocorrelation weakens. Values are strongest when lag are at 1 or 2.
+
 ### 4.2.5 Compute geary C correlogram
+
 ```{r}
 GC_corr <- sp.correlogram(wm_q$nb, 
                           wm_q$frequency, 
@@ -344,9 +394,12 @@ GC_corr <- sp.correlogram(wm_q$nb,
 plot(GC_corr)
 ```
 
+When lags are at 3 onward, Geary C values are close to if not 1, meaning total randomness. From here, we can see that there is positive spatial autocorrelation in neighbouring areas, only up two 2 lags (2 jumps). This could indicate that frequency in dengue are in clusters.
+
 # 5 Local Measures of Spatial Autocorrelation (Cluster and Outlier Analysis)
 
 ## 5.1 Local moran
+
 ```{r}
 localMoran = local_moran(wm_q$frequency,
                   wm_q$nb, 
@@ -355,25 +408,29 @@ localMoran = local_moran(wm_q$frequency,
 ```
 
 ```{r}
-localMoran
+head(localMoran)
 ```
 
 ```{r}
-unique_data[4]
+head(unique_data[4])
 ```
 
 ```{r}
-localMoran
+head(localMoran)
 ```
 
 ### 5.1.1 joining Local moran results and wm_q
+
 ```{r}
 localMoranData <- cbind(test3_sf[2], localMoran)
 ```
 
-Code chunk below list the content of the local Moran matrix derived by using printCoefMat - foolowed slides (Chao10)
+After running local moran code, it can be binded to week number as the rows are the same at 257, no need to do any fancy join.
+
+Code chunk below list the content of the local Moran matrix derived by using printCoefMat - followed slides (Chap10)
 
 ```{r}
+#| output: false
 fips <-localMoranData$town
 
 printCoefmat(data.frame(
@@ -382,7 +439,8 @@ printCoefmat(data.frame(
   check.names=FALSE)
 ```
 
-### 5.1.2 Mapping local moran 
+### 5.1.2 Mapping local moran
+
 ```{r}
 localMI.map <- tm_shape(localMoranData) +
   tm_fill(col = "ii", 
@@ -400,13 +458,14 @@ pvalue.map <- tm_shape(localMoranData) +
 tmap_arrange(localMI.map, pvalue.map, asp=1, ncol=2)
 ```
 
-What does this tell us?
+What does this tell us? For local moran statistics, those with values 1 and above, we can see that there is a strong spatial correlation in the data. Also, looking at the P values, it shows that our data is statistically significant to show that there is strong spatial correlation in those areas as well that are highlights in blue (from 0.001 onward)
 
 # 6.0 Hot Spot and Cold Spot Area Analysis
-If we were to use the lab example, we have to compute centroid, cut off distance, adaptive weight matrix before we can calculate Gi. However, with the use of sfdep packages, we can now do that with less steps. 
-Source - https://sfdep.josiahparry.com/articles/understanding-emerging-hotspots
 
-## 6.1 Calculating the local Gi*
+If we were to use the lab example, we have to compute centroid, cut off distance, adaptive weight matrix before we can calculate Gi. However, with the use of sfdep packages, we can now do that with less steps. Source - https://sfdep.josiahparry.com/articles/understanding-emerging-hotspots
+
+## 6.1 Calculating the local Gi\*
+
 ```{r}
 getis_nb <- test3_sf |> 
   mutate(
@@ -423,7 +482,8 @@ gistar <- getis_nb |>
 gistar
 ```
 
-## 6.2 Mapping local Gi*
+## 6.2 Mapping local Gi\*
+
 ```{r}
 gistar |> 
   mutate(cluster = case_when(
@@ -438,12 +498,14 @@ gistar |>
                                "Not Significant" = "white")) +
   theme_void()
 ```
-
+As expected, high clusters in the center region of tainan but weirdly, alot of low clusters, all on the outskirts.
 
 # 7 Space time and space cubes
+
 Source- https://sfdep.josiahparry.com/articles/spacetime-s3
 
-## 7.1 Filtering data that we need 
+## 7.1 Filtering data that we need
+
 ```{r}
 test4_sf <- test4_sf %>%
   distinct(town,week_number, .keep_all = TRUE)
@@ -452,11 +514,15 @@ test5_sf <- test4_sf%>% select(week_number,town,frequency)
 ```
 
 ## 7.2 Creating a space time object
+
 ```{r}
+#| output: false
 spt <- as_spacetime(test5_sf, "town", "week_number")
 activate(spt, "data")
 ```
+
 ### 7.2.1 Spacetime Contexts
+
 ```{r}
 spt |> 
   activate("geometry") 
@@ -467,7 +533,9 @@ is_spacetime_cube(spt)
 ```{r}
 spt_complete <- complete_spacetime_cube(spt)
 ```
-### 7.3.2 Replacing all N.A values with 0 
+
+### 7.3.2 Replacing all N.A values with 0
+
 ```{r}
 
 spt_complete <- complete_spacetime_cube(spt)
@@ -477,8 +545,8 @@ spt_complete <- spt_complete %>%
 
 I kept running into an error and i think its due to NA values in the frequency column. After i replaced the NA values, i didnt not run into that error anymore
 
-
 ## 7.4 Emerging hotspot analysis
+
 ```{r}
 emerging_hotspot<- emerging_hotspot_analysis(spt_complete, "frequency", threshold = 0.05)
 ```
@@ -488,7 +556,9 @@ head(emerging_hotspot)
 ```
 
 ## 7.5 Emerging hotspot analysis
+
 Source - https://is415-gaa-tskam.netlify.app/in-class_ex/in-class_ex05/in-class_ex05-ehsa
+
 ```{r}
 #| eval: false
 ehsa <- emerging_hotspot_analysis(
@@ -509,6 +579,7 @@ ehsa <-read_rds("data/rds/ehsa.rds")
 ```
 
 ### 7.5.1 Visualising the distribution of EHSA classes
+
 ```{r}
 ggplot(data = ehsa,
        aes(x = classification)) +
@@ -516,12 +587,12 @@ ggplot(data = ehsa,
 ```
 
 ## 7.6 Visualising EHSA
+
 ```{r}
 dengue_ehsa <- test3_sf %>%
   left_join(ehsa,
             by = join_by(town == location))
 ```
-
 
 ```{r}
 ehsa_sig <- dengue_ehsa  %>%
@@ -534,3 +605,7 @@ tm_shape(ehsa_sig) +
   tm_fill("classification") + 
   tm_borders(alpha = 0.4)
 ```
+Looking at the map and the graph, majority are oscilating hotspot (highlighted in orange) and also, oscilating hotspots means there are the ones with more frequent spikes in numbers, meaning we should focus more of our attention there if we are allocating resources such as vaccines / manpower to those areas to treat dengue. 
+
+Conclusion:
+Through this assignment, i am able to successfully identify patterns in the given area in tainan and also segment them accordingly to gather insights about clusters forming. I made use of Local and global spacial autocorrelation methods to find evidence of non-randomness in dengue spreads and finally space time cube method to see how through time, hotspots/ coldspots are formed
