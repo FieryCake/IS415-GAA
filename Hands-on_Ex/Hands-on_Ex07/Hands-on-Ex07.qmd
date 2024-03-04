@@ -1,4 +1,11 @@
-
+---
+title: "Hands on ex 07 - Glenn"
+execute: 
+  warning: false
+  #eval: false
+  
+date: "r Sys.Date()`"
+---
 ```{r}
 pacman::p_load(rgdal, spdep, tmap, sf, ClustGeo, 
                ggpubr, cluster, factoextra, NbClust,

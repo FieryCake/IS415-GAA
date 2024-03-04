@@ -1265,5 +1265,47 @@
     "title": "Take home assignment 2 - Glenn",
     "section": "7.6 Visualising EHSA",
     "text": "7.6 Visualising EHSA\n\ndengue_ehsa &lt;- test3_sf %&gt;%\n  left_join(ehsa,\n            by = join_by(town == location))\n\n\nehsa_sig &lt;- dengue_ehsa  %&gt;%\n  filter(p_value &lt; 0.05)\ntmap_mode(\"plot\")\ntm_shape(dengue_ehsa) +\n  tm_polygons() +\n  tm_borders(alpha = 0.5) +\ntm_shape(ehsa_sig) +\n  tm_fill(\"classification\") + \n  tm_borders(alpha = 0.4)\n\n\n\n\n\n\n\n\n\n\nNote\n\n\n\nLooking at the map and the graph, majority are oscilating hotspot (highlighted in orange) and also, oscilating hotspots means there are the ones with more frequent spikes in numbers, meaning we should focus more of our attention there if we are allocating resources such as vaccines / manpower to those areas to treat dengue.\n\n\n\n\n\n\n\n\nNote\n\n\n\nConclusion: Through this assignment, i am able to successfully identify patterns in the given area in tainan and also segment them accordingly to gather insights about clusters forming. I made use of Local and global spacial autocorrelation methods to find evidence of non-randomness in dengue spreads and finally space time cube method to see how through time, hotspots/ coldspots are formed"
+  },
+  {
+    "objectID": "Hands-on_Ex/Hands-on_Ex07/Hands-on-Ex07.html",
+    "href": "Hands-on_Ex/Hands-on_Ex07/Hands-on-Ex07.html",
+    "title": "Hands on ex 07 - Glenn",
+    "section": "",
+    "text": "pacman::p_load(rgdal, spdep, tmap, sf, ClustGeo, \n               ggpubr, cluster, factoextra, NbClust,\n               heatmaply, corrplot, psych, tidyverse, GGally)"
+  },
+  {
+    "objectID": "Hands-on_Ex/Hands-on_Ex07/Hands-on-Ex07.html#mapping-cluster-formed",
+    "href": "Hands-on_Ex/Hands-on_Ex07/Hands-on-Ex07.html#mapping-cluster-formed",
+    "title": "Hands on ex 07 - Glenn",
+    "section": "Mapping cluster formed",
+    "text": "Mapping cluster formed\n\ngroups &lt;- as.factor(cutree(hclust_ward, k=6))\n\nshan_sf_cluster &lt;- cbind(shan_sf, as.matrix(groups)) %&gt;%\n  rename(`CLUSTER`=`as.matrix.groups.`)\n\nqtm(shan_sf_cluster, \"CLUSTER\")"
+  },
+  {
+    "objectID": "Hands-on_Ex/Hands-on_Ex07/Hands-on-Ex07.html#converting-from-sf",
+    "href": "Hands-on_Ex/Hands-on_Ex07/Hands-on-Ex07.html#converting-from-sf",
+    "title": "Hands on ex 07 - Glenn",
+    "section": "Converting from SF",
+    "text": "Converting from SF\n\nshan_sp &lt;- as_Spatial(shan_sf)"
+  },
+  {
+    "objectID": "Hands-on_Ex/Hands-on_Ex07/Hands-on-Ex07.html#computing-neighbour-list",
+    "href": "Hands-on_Ex/Hands-on_Ex07/Hands-on-Ex07.html#computing-neighbour-list",
+    "title": "Hands on ex 07 - Glenn",
+    "section": "Computing neighbour list",
+    "text": "Computing neighbour list\n\nshan.nb &lt;- poly2nb(shan_sp)\nsummary(shan.nb)\n\nNeighbour list object:\nNumber of regions: 55 \nNumber of nonzero links: 264 \nPercentage nonzero weights: 8.727273 \nAverage number of links: 4.8 \nLink number distribution:\n\n 2  3  4  5  6  7  8  9 \n 5  9  7 21  4  3  5  1 \n5 least connected regions:\n3 5 7 9 47 with 2 links\n1 most connected region:\n8 with 9 links\n\n\n\nplot(shan_sf, \n     border=grey(.5))"
+  },
+  {
+    "objectID": "Hands-on_Ex/Hands-on_Ex07/Hands-on-Ex07.html#computing-spanning-tree",
+    "href": "Hands-on_Ex/Hands-on_Ex07/Hands-on-Ex07.html#computing-spanning-tree",
+    "title": "Hands on ex 07 - Glenn",
+    "section": "Computing spanning tree",
+    "text": "Computing spanning tree\n\nlcosts &lt;- nbcosts(shan.nb, shan_ict)\n\n\nshan.w &lt;- nb2listw(shan.nb, \n                   lcosts, \n                   style=\"B\")\nsummary(shan.w)\n\nCharacteristics of weights list object:\nNeighbour list object:\nNumber of regions: 55 \nNumber of nonzero links: 264 \nPercentage nonzero weights: 8.727273 \nAverage number of links: 4.8 \nLink number distribution:\n\n 2  3  4  5  6  7  8  9 \n 5  9  7 21  4  3  5  1 \n5 least connected regions:\n3 5 7 9 47 with 2 links\n1 most connected region:\n8 with 9 links\n\nWeights style: B \nWeights constants summary:\n   n   nn       S0       S1        S2\nB 55 3025 76267.65 58260785 522016004\n\n\n\nshan.mst &lt;- mstree(shan.w)"
+  },
+  {
+    "objectID": "Hands-on_Ex/Hands-on_Ex07/Hands-on-Ex07.html#mapping-cluster-form",
+    "href": "Hands-on_Ex/Hands-on_Ex07/Hands-on-Ex07.html#mapping-cluster-form",
+    "title": "Hands on ex 07 - Glenn",
+    "section": "Mapping cluster form",
+    "text": "Mapping cluster form\n\ngroups &lt;- as.factor(cutree(nongeo_cluster, k=6))\n\nshan_sf_ngeo_cluster &lt;- cbind(shan_sf, as.matrix(groups)) %&gt;%\n  rename(`CLUSTER` = `as.matrix.groups.`)\n\nqtm(shan_sf_ngeo_cluster, \"CLUSTER\")\n\n\n\n\n\ndist &lt;- st_distance(shan_sf, shan_sf)\ndistmat &lt;- as.dist(dist)\n\ncr &lt;- choicealpha(proxmat, distmat, range.alpha = seq(0, 1, 0.1), K=6, graph = TRUE)\n\n\n\n\n\n\n\n\nclustG &lt;- hclustgeo(proxmat, distmat, alpha = 0.3)\ngroups &lt;- as.factor(cutree(clustG, k=6))\nshan_sf_Gcluster &lt;- cbind(shan_sf, as.matrix(groups)) %&gt;%\n  rename(`CLUSTER` = `as.matrix.groups.`)\n\nqtm(shan_sf_Gcluster, \"CLUSTER\")"
   }
 ]
