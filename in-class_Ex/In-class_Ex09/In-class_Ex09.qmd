@@ -1,0 +1,200 @@
+
+
+
+
+```{r}
+pacman::p_load(sf, spdep, GWmodel, SpatialML, 
+               tmap, tidymodels, tidyverse,gtsummary,rpart,rpart.plot,ggstatplot,performance, rsample, Metrics,)
+```
+
+```{r}
+rs_sf<- read_rds("data/rds/HDB_resale.rds")
+```
+in simple feature file format, same as hands on ex. fields tidy up in terms of tuning and variables are in capital letters
+
+
+
+in any predictive model, need to split data after quick observation
+```{r}
+set.seed(1234)
+resale_split <- initial_split(rs_sf, 
+                              prop = 5/10,)
+train_sf <- training(resale_split)
+test_sf <- testing(resale_split)
+```
+
+split function is from rsample. 
+splitting got 2 , random and stratified. default is always random sampling 
+after splitting can check test and train data in environment
+
+```{r}
+train_df <- train_sf %>% st_drop_geometry() %>% as.data.frame()
+test_df <- test_sf %>% st_drop_geometry() %>% as.data.frame()
+```
+make into dataframe because the following steps might not work well with sf objects
+use class() to check train sf can see that it is sf tbl
+for train_df is jsut dataframe 
+
+use correlation metric to check variable
+```{r}
+corrplot::corrplot(cor(train_df), 
+                   diag = FALSE, 
+                   order = "AOE",
+                   tl.pos = "td", 
+                   tl.cex = 0.5, 
+                   method = "number", 
+                   type = "upper")
+```
+
+```{r}
+rs_mlr <- lm(RESALE_PRICE ~ FLOOR_AREA_SQM +
+                  STOREY_ORDER + REMAINING_LEASE_MTHS +
+                  PROX_CBD + PROX_ELDERLYCARE + PROX_HAWKER +
+                  PROX_MRT + PROX_PARK + PROX_MALL + 
+                  PROX_SUPERMARKET + WITHIN_350M_KINDERGARTEN +
+                  WITHIN_350M_CHILDCARE + WITHIN_350M_BUS +
+                  WITHIN_1KM_PRISCH,
+                data=train_df)
+summary(rs_mlr)
+```
+
+
+### Revising mlr model
+
+```{r}
+train_df<-train_df %>% select(-c(PROX_CHAS))
+train_sf <- train_sf %>% select (-c(PROX_CHAS))
+test_df<-test_df %>% select(-c(PROX_CHAS))
+test_sf <- test_sf %>% select (-c(PROX_CHAS))
+
+```
+removed away prox chas 
+
+```{r}
+rs_mlr <- lm(formula = RESALE_PRICE ~ FLOOR_AREA_SQM +
+                  STOREY_ORDER + REMAINING_LEASE_MTHS +
+                  PROX_CBD + PROX_ELDERLYCARE + PROX_HAWKER +
+                  PROX_MRT + PROX_PARK + PROX_MALL + 
+                  PROX_SUPERMARKET + WITHIN_350M_KINDERGARTEN +
+                  WITHIN_350M_CHILDCARE + WITHIN_350M_BUS +
+                  WITHIN_1KM_PRISCH,
+                data=train_df)
+summary(rs_mlr)
+```
+look into rs_mlr by clicking on the "body" in environment. 
+
+```{r}
+coords <- st_coordinates(rs_sf)
+coords_train <- st_coordinates(train_sf)
+coords_test <- st_coordinates(test_sf)
+
+```
+returns x and y for each point 
+
+```{r}
+set.seed(1234)
+rs_rp <- rpart(formula = RESALE_PRICE ~ FLOOR_AREA_SQM +
+                  STOREY_ORDER + REMAINING_LEASE_MTHS +
+                  PROX_CBD + PROX_ELDERLYCARE + PROX_HAWKER +
+                  PROX_MRT + PROX_PARK + PROX_MALL + 
+                  PROX_SUPERMARKET + WITHIN_350M_KINDERGARTEN +
+                  WITHIN_350M_CHILDCARE + WITHIN_350M_BUS +
+                  WITHIN_1KM_PRISCH,
+                data=train_df)
+rs_rp
+```
+
+```{r}
+rpart.plot(rs_rp)
+```
+
+note that same variables can be used multiple times. Cut off different only. 
+
+```{r}
+set.seed(1234)
+rs_rf <- ranger(formula = RESALE_PRICE ~ FLOOR_AREA_SQM +
+                  STOREY_ORDER + REMAINING_LEASE_MTHS +
+                  PROX_CBD + PROX_ELDERLYCARE + PROX_HAWKER +
+                  PROX_MRT + PROX_PARK + PROX_MALL + 
+                  PROX_SUPERMARKET + WITHIN_350M_KINDERGARTEN +
+                  WITHIN_350M_CHILDCARE + WITHIN_350M_BUS +
+                  WITHIN_1KM_PRISCH,
+                data=train_df,
+                importance = "impurity")
+rs_rf
+```
+if dont specifiy importance, ranger by default would not extract this
+
+
+```{r}
+vi <- as.data.frame(rs_rf$variable.importance)
+vi$variable <-rownames(vi)
+vi<- vi %>% rename (vi = "rs_rf$variable.importance")
+```
+take row name and create new column name variables
+this is for plotting because row name cannot be used to plot ^^^^^
+
+
+```{r}
+ggplot(data = vi,
+       aes(x=vi,
+           y=reorder(variable, vi))) + geom_bar(stat="identity")
+```
+identity will treat every row as single observation without start = identity
+
+
+```{r}
+rs_grf <- read_rds("data/models/rs_grf.rds")
+```
+
+```{r}
+test_df <- cbind(test_sf, coords_test) %>% st_drop_geometry()
+```
+
+```{r}
+grf_pred<- read_rds("data/models/grf_pred.rds")
+grf_pred_df<- as.data.frame(grf_pred)
+```
+
+change from vector to df 
+
+```{r}
+test_pred<-test_df %>% select(RESALE_PRICE) %>% cbind(grf_pred_df)
+```
+
+```{r}
+rf_pred<- predict(rs_rf, test_df)
+```
+
+```{r}
+rf_pred_df <- as.data.frame(rf_pred$predictions)%>%
+  rename (rf_pred="rf_pred$predictions")
+```
+
+```{r}
+test_pred <-cbind(test_pred, rf_pred_df)
+```
+
+3rd column will be appended (predicted variables)
+
+```{r}
+yardstick:: rmse(test_pred,RESALE_PRICE,rf_pred)
+```
+
+```{r}
+mc<-test_pred %>% pivot_longer(cols = c(2:3),
+                               names_to = "models",
+                               values_to="predicted")
+
+
+```
+
+compare model that give you the best predicition 
+
+```{r}
+ggplot(data=test_pred,
+       aes(x=grf_pred,
+           y=RESALE_PRICE))+
+  geom_point()
+```
+
