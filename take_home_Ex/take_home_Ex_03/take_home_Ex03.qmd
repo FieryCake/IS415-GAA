@@ -1,1 +1,520 @@
+---
+title: "Take home assignment 3 - Glenn"
+execute: 
+  warning: false
+  #eval: false
+  
+date: "r Sys.Date()`"
+---
 
+# 1.0 Introduction
+
+Singapore, a hallmark of development and urban planning, is renowned for its efficient public transportation system and well-planned residential areas. Despite these achievements, there are recurring concerns among its citizens about the varying levels of convenience and accessibility in different regions. This disparity has led to unequal demand for housing, with some areas being more sought after than others. This project aims to investigate the truth behind these claims, focusing on whether certain areas in Singapore indeed suffer from a lack of accessibility and convenience. By identifying these areas, we intend to highlight potential regions that could benefit from urban planning improvements, thereby enhancing the quality of life for its residents.
+
+## 1.1 Assigned approach
+
+-   **Hotspot Analysis**
+
+    -   With the accessibility scores calculated for each region, we will perform hotspot analysis to identify areas with significantly higher or lower accessibility levels.
+
+# 2.0 Goal
+
+The goal of my analysis is to identify areas with higher or lower accessibility levels. I will first import the datasets of each amenities and find the frequency of them per region. Next, i will combine all of them together for an overall view (sum) of amenities for each area. \
+\
+After that, i will proceed to do Local and Global spatial correlation analysis to identify patterns in the dataset. This will alllow us to find out if there are correlations between areas in Singapore and also allow us to find out if there are clusters that form, indicating a cluster of amenities.
+
+From here, we can also derive areas which needs more / less development and to suggest different regions that we can improve by delegating resources appropriately.
+
+# 3.0 Getting the data into our R environment
+
+## 3.1 Importing the packages
+
+```{r}
+pacman::p_load(sf, sfdep, tmap, plotly, tidyverse,st,lubridate,arrow,spNetwork,classInt,viridis,raster,spatstat,dplyr,spdep)
+```
+
+## 3.2 Geospatial data wrangling
+
+```{r}
+mpsz <- st_read(dsn = "data/geospatial", 
+                layer = "MPSZ-2019")
+```
+
+## 3.2.1 Changing CRS to 3414
+
+```{r}
+mpsz_sf<-st_transform(mpsz, 
+                              crs = 3414)
+```
+
+## 3.2.2 Checking if Geometries are valid
+
+```{r}
+length(which(st_is_valid(mpsz_sf) == FALSE))
+```
+
+From here, we can see that 6 geometries are invalid. We can use the st_make_valid() function to make it valid.
+
+```{r}
+mpsz_sf <- st_make_valid(mpsz_sf)
+length(which(st_is_valid(mpsz_sf) == FALSE))
+## source: https://r-spatial.github.io/sf/reference/valid.html - make_valid
+```
+
+## 3.2.3 Removing outer islands
+
+Similarly to take home assignment 1, we do not want to include the outer islands in our analysis.
+
+```{r}
+##source - https://stackoverflow.com/questions/42512431/how-to-separate-a-multipolygon-geometry-into-several-polygons-objects-after-perf
+temp <-st_union(mpsz_sf,by_feature = FALSE)
+
+ind_poly <- st_cast(temp, "POLYGON")
+sf_use_s2(FALSE)
+areas <- st_area(ind_poly)
+
+largest_index <- which.max(areas)
+
+largest_polygon <- ind_poly[largest_index]
+
+plot(largest_polygon)
+```
+
+```{r}
+bigIsland3414 <- st_transform(largest_polygon, 
+                              crs = 3414)
+st_crs(bigIsland3414)
+```
+
+```{r}
+
+islandPoly <- st_intersection(st_set_crs(mpsz_sf, 3414),st_set_crs(bigIsland3414, 3414))
+```
+
+```{r}
+plot(islandPoly)
+```
+
+```{r}
+mainMap_sf<-st_set_crs(islandPoly, 3414)
+st_crs(mainMap_sf)
+```
+
+## 3.2 Aspatial data wrangling
+
+### 3.2.1 Importing the data
+
+```{r}
+supermarkets <- read_csv("data/aspatial/supermarket_coordinates.csv")
+schools <- read_csv("data/aspatial/school_coordinates.csv")
+mrt <- read_csv("data/aspatial/MRT_coordinates.csv")
+malls <- read_csv("data/aspatial/mall_coordinates.csv")
+hawkers <- read_csv("data/aspatial/hawker_coordinates.csv")
+```
+
+### 3.2.2 Changing coordinates from decimal point degree
+
+```{r}
+supermarkets_sf <- st_as_sf(supermarkets,coords = c("Longitude", "Latitude"),crs = 4326) %>% st_transform(crs = 3414)
+
+schools_sf <- st_as_sf(schools,
+                      coords = c("Longitude", "Latitude"),
+                      crs = 4326) %>%
+  st_transform(crs = 3414)
+
+mrt_sf <- st_as_sf(schools,
+                      coords = c("Longitude", "Latitude"),
+                      crs = 4326) %>%
+  st_transform(crs = 3414)
+
+malls_sf <- st_as_sf(malls,
+                      coords = c("Longitude", "Latitude"),
+                      crs = 4326) %>%
+  st_transform(crs = 3414)
+
+hawkers_sf <- st_as_sf(hawkers,
+                      coords = c("Longitude", "Latitude"),
+                      crs = 4326) %>%
+  st_transform(crs = 3414)
+
+```
+
+```{r}
+head(supermarkets_sf)
+```
+
+### 3.2.3 Doing changes to the data for later heatmap
+
+#### 3.2.3.1 Finding hawkers and their specific regions
+
+```{r}
+region_supermarkets_intersections <- st_intersection(supermarkets_sf, mainMap_sf) %>% 
+  mutate(area = SUBZONE_C)
+
+region_schools_intersections <- st_intersection(schools_sf, mainMap_sf) %>% 
+  mutate(area = SUBZONE_C)
+
+region_mrt_intersections <- st_intersection(mrt_sf, mainMap_sf) %>% 
+  mutate(area = SUBZONE_C)
+
+region_malls_intersections <- st_intersection(malls_sf, mainMap_sf) %>% 
+  mutate(area = SUBZONE_C)
+
+region_hawkers_intersections <- st_intersection(hawkers_sf, mainMap_sf) %>% 
+  mutate(area = SUBZONE_C)
+```
+
+The code above allows us to tag the different amenities to the individual subzones that they belong to.
+
+#### 3.2.3.2 joining data points and the correct subzone
+
+After tagging the specific ameneties with the subzone they belong to, we can do a left join to map to get their specific geometries too. This will be used later on during hotspot analysis for the individual amenities and also all amenities as a whole.
+
+```{r}
+region_supermarkets_intersections2<-st_drop_geometry(region_supermarkets_intersections)
+result1 <- left_join(region_supermarkets_intersections2, mainMap_sf, by = c("area" = "SUBZONE_C")) %>% mutate(type = "supermarket")
+
+region_schools_intersections2<-st_drop_geometry(region_schools_intersections)
+result2 <- left_join(region_schools_intersections2, mainMap_sf, by = c("area" = "SUBZONE_C"))%>% mutate(type = "school")
+
+region_mrt_intersections2<-st_drop_geometry(region_mrt_intersections)
+result3 <- left_join(region_mrt_intersections2, mainMap_sf, by = c("area" = "SUBZONE_C"))%>% mutate(type = "mrt")
+
+region_malls_intersections2<-st_drop_geometry(region_malls_intersections)
+result4 <- left_join(region_malls_intersections2, mainMap_sf, by = c("area" = "SUBZONE_C"))%>% mutate(type = "mall")
+
+region_hawkers_intersections2<-st_drop_geometry(region_hawkers_intersections)
+result5 <- left_join(region_hawkers_intersections2, mainMap_sf, by = c("area" = "SUBZONE_C"))%>% mutate(type = "hawker")
+
+
+```
+
+#### 3.2.3.3 selecting type and area only for next step to count frequency
+
+```{r}
+count_result1 <- dplyr::select(result1, type,area)
+count_result2 <- dplyr::select(result2, type,area)
+count_result3 <- dplyr::select(result3, type,area)
+count_result4 <- dplyr::select(result4, type,area)
+count_result5 <- dplyr::select(result5, type,area)
+
+```
+
+We then take out the columns that we need which are just the area and type.
+
+#### 3.2.3.4 counting individual ameneties by subzone and then combining them into a df
+
+We then want to find the frequency of each ameneties by region
+
+```{r}
+supermarkets_frequency <- count_result1 %>%
+  group_by(area) %>%
+  summarise(frequency = n())
+
+schools_frequency <- count_result2 %>%
+  group_by(area) %>%
+  summarise(frequency = n())
+
+mrt_frequency <- count_result3 %>%
+  group_by(area) %>%
+  summarise(frequency = n())
+
+malls_frequency <- count_result4 %>%
+  group_by(area) %>%
+  summarise(frequency = n())
+
+hawkers_frequency <- count_result5 %>%
+  group_by(area) %>%
+  summarise(frequency = n())
+
+combined_frequency <- bind_rows(supermarkets_frequency,schools_frequency,mrt_frequency,malls_frequency,hawkers_frequency)%>% group_by(area) %>%
+  summarise(frequency = sum(frequency))
+```
+
+At the end, we add all the frequencies together and group them by their area. The area code will be used to get the specific gemetry later on
+
+#### 3.2.3.5 Joining to get geometry
+
+```{r}
+combined_frequencyFinal <- left_join(combined_frequency, mainMap_sf, by = c("area" = "SUBZONE_C"))
+```
+
+The above code joins the area and their frequency with the sf object mainMap_sf. This allows each area code to be tagged with the correct geometry.
+
+```{r}
+combined_frequencyFinal <- st_as_sf(combined_frequencyFinal)
+```
+
+# 3.3 Plotting the maps
+
+```{r}
+plot(supermarkets_sf)
+
+```
+
+```{r}
+st_crs(supermarkets_sf)
+```
+
+## 3.3.1 Plotting supermarkets on the map
+
+```{r}
+tmap_mode("plot")
+
+tm_shape(mainMap_sf) +
+  tm_polygons() +
+tm_shape(supermarkets_sf) +
+  tm_dots(size = 0.1, col = "red")
+
+```
+
+## 3.3.2 Plotting hawkers on the map
+
+```{r}
+tmap_mode("plot")
+
+tm_shape(mainMap_sf) +
+  tm_polygons() +
+tm_shape(hawkers_sf) +
+  tm_dots(size = 0.5)
+
+```
+
+```{r}
+equal <- 
+tm_shape(islandPoly) +
+  tm_polygons() +
+  tm_shape(combined_frequencyFinal) +
+  tm_fill("frequency",n=4,  style = "equal") +
+  tm_borders(alpha = 0.5)+tm_compass(type="8star",size=2)+tm_scale_bar()+tm_grid(alpha=0.2) +
+  tm_layout(main.title = "Town Frequency")
+
+quantile<- 
+tm_shape(islandPoly) +
+  tm_polygons() +
+  tm_shape(combined_frequencyFinal) +
+  tm_fill("frequency",n=4,  style = "quantile") +
+  tm_borders(alpha = 0.5)+tm_compass(type="8star",size=2)+tm_scale_bar()+tm_grid(alpha=0.2) +
+  tm_layout(main.title = "Town Frequency")
+
+tmap_arrange(equal, 
+             quantile, 
+             asp=1, 
+             ncol=2)
+```
+
+From here, we can choose either quantile or equal. This could be a descriptiive map for our final project to show the distrubution of ameneties for different subzones.
+
+# 4. Global measures of Spatial autocorrelation
+
+```{r}
+wm_q<-combined_frequencyFinal %>% mutate(nb=st_contiguity(geometry), wt=st_weights(nb,style="W"),.before=1)
+```
+
+## 4.1 Morans test
+
+```{r}
+set.seed(1234)
+bperm = global_moran_perm(wm_q$frequency,
+                  wm_q$nb, 
+                  wm_q$wt,
+                  nsim=99)
+```
+
+```{r}
+bperm
+```
+
+Looking at this result, we can see the the p-value is 0.34, which is more than 0.05. This suggest that there no spatial autocorrelation in the data.
+
+## 4.1.2 Visualising Monte-carlo moran’s test
+
+```{r}
+hist(bperm$res, 
+     freq=TRUE, 
+     breaks=5, 
+     xlab="Simulated Moran's I")
+abline(v=0, 
+       col="red") 
+```
+
+## 4.1.3 Geary C
+
+```{r}
+gperm = global_c_perm(wm_q$frequency,
+                  wm_q$nb, 
+                  wm_q$wt,
+                  nsim=99)
+```
+
+```{r}
+gperm
+```
+
+```{r}
+hist(gperm$res, freq=TRUE, breaks=20, xlab="Simulated Geary c")
+abline(v=1, col="red") 
+```
+
+Looking at the statistic and p-value, p-value shows 0.57 which is significant, indicating that there is no signs of spatial autocorrelation. Statistic is at 1.0134, which is very close to 1. If statistic is 1, it means spatial randomness, meaning no sign of auto correlation. This means that ultimately, it shows almost no signs of spatial correlation
+
+Summary: No Signs of spatial correlation
+
+# 5. Local measures of Spatial autocorrelation
+
+## 5.1 Local moran
+
+```{r}
+localMoran = local_moran(wm_q$frequency,
+                  wm_q$nb, 
+                  wm_q$wt,
+                  nsim=99)
+```
+
+```{r}
+localMoranData <- cbind(combined_frequencyFinal, localMoran)
+```
+
+```{r}
+fips <-localMoranData$town
+
+printCoefmat(data.frame(
+  localMoran, 
+  row.names=localMoranData$town),
+  check.names=FALSE)
+```
+
+```{r}
+localMI.map <- tm_shape(localMoranData) +
+  tm_fill(col = "ii", 
+          style = "pretty", 
+          title = "local moran statistics") +
+  tm_borders(alpha = 0.5)+tm_compass(type="8star",size=2)+tm_scale_bar()+tm_grid(alpha=0.2)
+
+pvalue.map <- tm_shape(localMoranData) +
+  tm_fill(col = "p_ii", 
+          breaks=c(-Inf, 0.001, 0.01, 0.05, 0.1, Inf),
+          palette="-Blues", 
+          title = "local Moran's I p-values") +
+  tm_borders(alpha = 0.5)+tm_compass(type="8star",size=2)+tm_scale_bar()+tm_grid(alpha=0.2)
+
+tmap_arrange(localMI.map, pvalue.map, asp=1, ncol=2)
+```
+
+Looking at the map generated above, we can see the statistic figures of local moran and also the p-values. What we can infer from above is that local moran statistics that indicate -4 to -1 means that there is negative spatial correlation and that those 1 to 4 indicate stronger spatial correlation. However, when referencing to the P values map, we can see that majority of the areas are light blue, indicating a p value of 0.1 or more. This means that spatial correlation in those areas are likely by random chance.
+
+# Hot Spot and Cold Spot Area Analysis
+
+Source: https://sfdep.josiahparry.com/articles/understanding-emerging-hotspots.html \## Calculating the local Gi\*
+
+```{r}
+getis_nb <- combined_frequencyFinal |> 
+  mutate(
+    nb = include_self(st_contiguity(geometry)),
+         wt = st_weights(nb)
+    ) 
+```
+
+```{r}
+gistar <- getis_nb |> 
+  transmute(gi_star = local_gstar_perm(frequency, nb, wt, nsim = 199)) |> 
+  tidyr::unnest(gi_star)
+
+gistar
+```
+
+```{r}
+gistar |> 
+  mutate(cluster = case_when(
+    p_folded_sim > 0.05 ~ "Not Significant",
+    p_folded_sim <= 0.05 & gi_star < 0 ~ "Low",
+    p_folded_sim <= 0.05 & gi_star > 0 ~ "High"
+  )) |> 
+  ggplot(aes(fill = cluster)) +
+  geom_sf(lwd = 0.2, color = "black") +
+  scale_fill_manual(values = c("High" = "red",
+                               "Low" = "Blue", 
+                               "Not Significant" = "white")) +
+  theme_void()
+```
+
+```{r}
+gistar <- gistar %>%
+  mutate(cluster = case_when(
+    p_folded_sim > 0.05 ~ "Not Significant",
+    p_folded_sim <= 0.05 & gi_star < 0 ~ "Low",
+    p_folded_sim <= 0.05 & gi_star > 0 ~ "High"
+  ))
+```
+
+```{r}
+temp<-st_join(mainMap_sf, gistar, join = st_intersects)
+temp[is.na(temp)] <- "Not Significant"
+
+
+tmap_mode('view')
+
+tm_shape(temp) +
+  tm_fill(col = "cluster",id = "SUBZONE_N") +
+  tm_borders()
+
+
+
+tmap_mode('plot')
+```
+
+Summary: Looking at the Global correlation results, we can see that we have no spatial correlation in our dataset. However, when looking at local spatial correlation results, we can see that there are some signs of clustering in the east side of Singapore.
+
+There is no patterns when looking at Singapore as a whole but that when looking at regions / subzones in their independant state, we find that there are some relationship / hotspots that came out in the eastern side of Singapore.
+
+# UI design
+
+For the UI Design section, we will be referencing the Layout from the Shiny workshop. From there, we will select a Shiny Layout panel we want to use to present our data.
+
+![](images/clipboard-4165843377.png)
+
+The layouts above are the templates that we have learnt in the workshop. For each graph to present, i will be usinng a layout that will be appealing to users.
+
+## Graph 1
+
+![](images/clipboard-1431619430.png)For the graph above, the different parameters required for this fields are the following\
+
+1.  Frequency of amenities (Combined, hawker, schools etc)
+
+2.  N (Number of bins)
+
+3.  Style (Equal or Quantile)
+
+From here, we can implement a sidebarLayout. The side panel will consist of sliders to allow user to customize the parameters above. The main panel will be used to display the graph as the output.
+
+![](images/clipboard-2599608425.png)
+
+![](images/clipboard-3735402005.png)
+
+## Graph 2
+
+![](images/clipboard-56508721.png)For the graph above, the different parameters required for this fields are the following
+
+1.  Category of amenities (Combined, hawker, schools etc)
+
+2.  Col (P value, Statistics)
+
+From here, we can implement a sidebarLayout. The side panel will consist of sliders to allow user to customize the parameters above. The main panel will be used to display the graph as the output.
+
+![](images/clipboard-3509335456.png)
+
+![](images/clipboard-1590930310.png)
+
+## Graph 3
+
+![For the graph above, the different parameters required for this fields are the following](images/clipboard-3408817880.png)
+
+1.  Category of amenities (Combined, hawker, schools etc)
+
+2.  Region
+
+From here, we can implement a sidebarLayout. The side panel will consist of sliders to allow user to customize the parameters above. The main panel will be used to display the graph as the output.
+
+![](images/clipboard-1727332826.png)
+
+![](images/clipboard-1853017575.png)
