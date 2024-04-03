@@ -19,7 +19,7 @@ Singapore, a hallmark of development and urban planning, is renowned for its eff
 
 # 2.0 Goal
 
-The goal of my analysis is to identify areas with higher or lower accessibility levels. I will first import the datasets of each amenities and find the frequency of them per region. Next, i will combine all of them together for an overall view (sum) of amenities for each area. \
+The goal of my analysis is to identify areas with higher or lower accessibility levels. I will first import the datasets of each amenities and find the frequency of them per region. Next, i will combine all of them together for an overall view (sum) of amenities for each area.\
 \
 After that, i will proceed to do Local and Global spatial correlation analysis to identify patterns in the dataset. This will alllow us to find out if there are correlations between areas in Singapore and also allow us to find out if there are clusters that form, indicating a cluster of amenities.
 
@@ -237,12 +237,14 @@ At the end, we add all the frequencies together and group them by their area. Th
 
 ```{r}
 combined_frequencyFinal <- left_join(combined_frequency, mainMap_sf, by = c("area" = "SUBZONE_C"))
+supermarkets_frequencyFinal <-left_join(supermarkets_frequency, mainMap_sf, by = c("area" = "SUBZONE_C"))
 ```
 
 The above code joins the area and their frequency with the sf object mainMap_sf. This allows each area code to be tagged with the correct geometry.
 
 ```{r}
 combined_frequencyFinal <- st_as_sf(combined_frequencyFinal)
+supermarkets_frequencyFinal<- st_as_sf(supermarkets_frequencyFinal)
 ```
 
 # 3.3 Plotting the maps
@@ -268,7 +270,7 @@ tm_shape(supermarkets_sf) +
 
 ```
 
-## 3.3.2 Plotting hawkers on the map
+## 3.3.2 Plotting hawkers and supermarkets on the map
 
 ```{r}
 tmap_mode("plot")
@@ -280,6 +282,17 @@ tm_shape(hawkers_sf) +
 
 ```
 
+```{r}
+tmap_mode("plot")
+
+tm_shape(mainMap_sf) +
+  tm_polygons() +
+tm_shape(supermarkets_sf) +
+  tm_dots(size = 0.5)
+
+```
+
+## 3.3.3 Plotting frequency map (all)
 ```{r}
 equal <- 
 tm_shape(islandPoly) +
@@ -293,7 +306,30 @@ quantile<-
 tm_shape(islandPoly) +
   tm_polygons() +
   tm_shape(combined_frequencyFinal) +
-  tm_fill("frequency",n=4,  style = "quantile") +
+  tm_fill("frequency",n=10,  style = "quantile") +
+  tm_borders(alpha = 0.5)+tm_compass(type="8star",size=2)+tm_scale_bar()+tm_grid(alpha=0.2) +
+  tm_layout(main.title = "Town Frequency")
+
+tmap_arrange(equal, 
+             quantile, 
+             asp=1, 
+             ncol=2)
+```
+## 3.3.3 Plotting frequency map (super markets)
+```{r}
+equal <- 
+tm_shape(islandPoly) +
+  tm_polygons() +
+  tm_shape(supermarkets_frequencyFinal) +
+  tm_fill("frequency",n=4,  style = "equal") +
+  tm_borders(alpha = 0.5)+tm_compass(type="8star",size=2)+tm_scale_bar()+tm_grid(alpha=0.2) +
+  tm_layout(main.title = "Town Frequency")
+
+quantile<- 
+tm_shape(islandPoly) +
+  tm_polygons() +
+  tm_shape(supermarkets_frequencyFinal) +
+  tm_fill("frequency",n=8,  style = "quantile") +
   tm_borders(alpha = 0.5)+tm_compass(type="8star",size=2)+tm_scale_bar()+tm_grid(alpha=0.2) +
   tm_layout(main.title = "Town Frequency")
 
@@ -309,6 +345,7 @@ From here, we can choose either quantile or equal. This could be a descriptiive 
 
 ```{r}
 wm_q<-combined_frequencyFinal %>% mutate(nb=st_contiguity(geometry), wt=st_weights(nb,style="W"),.before=1)
+wm_q2<-supermarkets_frequencyFinal %>% mutate(nb=st_contiguity(geometry), wt=st_weights(nb,style="W"),.before=1)
 ```
 
 ## 4.1 Morans test
@@ -319,10 +356,21 @@ bperm = global_moran_perm(wm_q$frequency,
                   wm_q$nb, 
                   wm_q$wt,
                   nsim=99)
+
+set.seed(1234)
+bperm2 = global_moran_perm(wm_q2$frequency,
+                  wm_q2$nb, 
+                  wm_q2$wt,
+                  nsim=99)
+
+
 ```
 
 ```{r}
 bperm
+```
+```{r}
+bperm2
 ```
 
 Looking at this result, we can see the the p-value is 0.34, which is more than 0.05. This suggest that there no spatial autocorrelation in the data.
@@ -369,10 +417,18 @@ localMoran = local_moran(wm_q$frequency,
                   wm_q$nb, 
                   wm_q$wt,
                   nsim=99)
+
+localMoran2 = local_moran(wm_q2$frequency,
+                  wm_q2$nb, 
+                  wm_q2$wt,
+                  nsim=99)
+
+
 ```
 
 ```{r}
 localMoranData <- cbind(combined_frequencyFinal, localMoran)
+localMoranData2 <- cbind(supermarkets_frequencyFinal, localMoran2)
 ```
 
 ```{r}
@@ -400,6 +456,22 @@ pvalue.map <- tm_shape(localMoranData) +
 
 tmap_arrange(localMI.map, pvalue.map, asp=1, ncol=2)
 ```
+```{r}
+localMI.map2 <- tm_shape(localMoranData2) +
+  tm_fill(col = "ii", 
+          style = "pretty", 
+          title = "local moran statistics") +
+  tm_borders(alpha = 0.5)+tm_compass(type="8star",size=2)+tm_scale_bar()+tm_grid(alpha=0.2)
+
+pvalue.map2 <- tm_shape(localMoranData2) +
+  tm_fill(col = "p_ii", 
+          breaks=c(-Inf, 0.001, 0.01, 0.05, 0.1, Inf),
+          palette="-Blues", 
+          title = "local Moran's I p-values") +
+  tm_borders(alpha = 0.5)+tm_compass(type="8star",size=2)+tm_scale_bar()+tm_grid(alpha=0.2)
+
+tmap_arrange(localMI.map2, pvalue.map2, asp=1, ncol=2)
+```
 
 Looking at the map generated above, we can see the statistic figures of local moran and also the p-values. What we can infer from above is that local moran statistics that indicate -4 to -1 means that there is negative spatial correlation and that those 1 to 4 indicate stronger spatial correlation. However, when referencing to the P values map, we can see that majority of the areas are light blue, indicating a p value of 0.1 or more. This means that spatial correlation in those areas are likely by random chance.
 
@@ -413,6 +485,14 @@ getis_nb <- combined_frequencyFinal |>
     nb = include_self(st_contiguity(geometry)),
          wt = st_weights(nb)
     ) 
+
+getis_nb2 <- supermarkets_frequencyFinal |> 
+  mutate(
+    nb = include_self(st_contiguity(geometry)),
+         wt = st_weights(nb)
+    ) 
+
+
 ```
 
 ```{r}
@@ -421,6 +501,12 @@ gistar <- getis_nb |>
   tidyr::unnest(gi_star)
 
 gistar
+
+gistar2 <- getis_nb2 |> 
+  transmute(gi_star2 = local_gstar_perm(frequency, nb, wt, nsim = 199)) |> 
+  tidyr::unnest(gi_star2)
+
+gistar2
 ```
 
 ```{r}
@@ -438,6 +524,23 @@ gistar |>
   theme_void()
 ```
 
+
+```{r}
+gistar2 |> 
+  mutate(cluster = case_when(
+    p_folded_sim > 0.05 ~ "Not Significant",
+    p_folded_sim <= 0.05 & gi_star < 0 ~ "Low",
+    p_folded_sim <= 0.05 & gi_star > 0 ~ "High"
+  )) |> 
+  ggplot(aes(fill = cluster)) +
+  geom_sf(lwd = 0.2, color = "black") +
+  scale_fill_manual(values = c("High" = "red",
+                               "Low" = "Blue", 
+                               "Not Significant" = "white")) +
+  theme_void()
+```
+
+
 ```{r}
 gistar <- gistar %>%
   mutate(cluster = case_when(
@@ -448,7 +551,32 @@ gistar <- gistar %>%
 ```
 
 ```{r}
+gistar2 <- gistar2 %>%
+  mutate(cluster = case_when(
+    p_folded_sim > 0.05 ~ "Not Significant",
+    p_folded_sim <= 0.05 & gi_star < 0 ~ "Low",
+    p_folded_sim <= 0.05 & gi_star > 0 ~ "High"
+  ))
+```
+
+```{r}
 temp<-st_join(mainMap_sf, gistar, join = st_intersects)
+temp[is.na(temp)] <- "Not Significant"
+
+
+tmap_mode('view')
+
+tm_shape(temp) +
+  tm_fill(col = "cluster",id = "SUBZONE_N") +
+  tm_borders()
+
+
+
+tmap_mode('plot')
+```
+
+```{r}
+temp<-st_join(mainMap_sf, gistar2, join = st_intersects)
 temp[is.na(temp)] <- "Not Significant"
 
 

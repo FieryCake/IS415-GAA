@@ -1,0 +1,78 @@
+---
+title: "In class assignment 11 - Glenn"
+execute: 
+  warning: false
+  #eval: false
+  
+date: "r Sys.Date()`"
+---
+
+# Model calibration
+
+```{r}
+devtools::install_github("LukeCe/spflow")
+```
+```{r}
+pacman::p_load(tmap, sf,spdep, sp, Matrix, tidyverse,spflow, reshape2,knitr)
+library("spflow")
+```
+
+
+## Loading the data
+```{r}
+mpsz_nb <- read_rds("data/rds/mpsz_nb.rds")
+```
+
+```{r}
+mpsz_flow <- read_rds("data/rds/mpsz_flow.rds")
+```
+
+```{r}
+mpsz_var <- read_rds("data/rds/mpsz_var.rds")
+```
+
+Need to create 3 diff objects. need object to speed up computation. 3 data sets above are comformed to requirement for faster computation
+
+
+When we work with libaries, we will hit problems. Installation on pac man also might not be latest version. In reality we need to find packages ourselves
+
+```{r}
+mpsz_net <-spflow_network(
+  id_net = "sg",
+  node_neighbourhood = nb2mat(mpsz_nb$by_contiguity),
+  node_data= mpsz_var,
+  node_key_column = "SZ_CODE"
+)
+
+mpsz_net
+```
+
+```{r}
+mpsz_net_pairs <-spflow_network_pair(
+  id_orig_net = "sg",
+  id_dest_net = "sg",
+  pair_data = mpsz_flow,
+  orig_key_column ="ORIGIN_SZ",
+  dest_key_column = "DESTIN_SZ"
+)
+
+mpsz_net_pairs
+```
+
+```{r}
+mpsz_multi_net <-spflow_network_multi(mpsz_net,mpsz_net_pairs)
+mpsz_multi_net
+```
+
+```{r}
+base_model<- spflow(
+  spflow_formula = log(1 + TRIPS)~
+    O_(BUSSTOP_COUNT + AGE25_64) +
+    D_(SCHOOL_COUNT + BUSINESS_COUNT +
+         RETAILS_COUNT + FINSERV_COUNT) +
+    P_(log(DISTANCE + 1)),
+  spflow_networks = mpsz_multi_net
+)
+
+base_model
+```
