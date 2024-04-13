@@ -238,6 +238,10 @@ At the end, we add all the frequencies together and group them by their area. Th
 ```{r}
 combined_frequencyFinal <- left_join(combined_frequency, mainMap_sf, by = c("area" = "SUBZONE_C"))
 supermarkets_frequencyFinal <-left_join(supermarkets_frequency, mainMap_sf, by = c("area" = "SUBZONE_C"))
+schools_frequencyFinal <-left_join(schools_frequency, mainMap_sf, by = c("area" = "SUBZONE_C"))
+mrt_frequencyFinal <-left_join(mrt_frequency, mainMap_sf, by = c("area" = "SUBZONE_C"))
+malls_frequencyFinal <-left_join(malls_frequency, mainMap_sf, by = c("area" = "SUBZONE_C"))
+hawkers_frequencyFinal <-left_join(hawkers_frequency, mainMap_sf, by = c("area" = "SUBZONE_C"))
 ```
 
 The above code joins the area and their frequency with the sf object mainMap_sf. This allows each area code to be tagged with the correct geometry.
@@ -245,6 +249,10 @@ The above code joins the area and their frequency with the sf object mainMap_sf.
 ```{r}
 combined_frequencyFinal <- st_as_sf(combined_frequencyFinal)
 supermarkets_frequencyFinal<- st_as_sf(supermarkets_frequencyFinal)
+schools_frequencyFinal<- st_as_sf(schools_frequencyFinal)
+mrt_frequencyFinal<- st_as_sf(mrt_frequencyFinal)
+malls_frequencyFinal<- st_as_sf(malls_frequencyFinal)
+hawkers_frequencyFinal<- st_as_sf(hawkers_frequencyFinal)
 ```
 
 # 3.3 Plotting the maps
@@ -315,6 +323,8 @@ tmap_arrange(equal,
              asp=1, 
              ncol=2)
 ```
+
+
 ## 3.3.3 Plotting frequency map (super markets)
 ```{r}
 equal <- 
@@ -339,6 +349,16 @@ tmap_arrange(equal,
              ncol=2)
 ```
 
+```{r}
+write_rds(islandPoly, "data/rds/mpsz.rds")
+write_rds(supermarkets_frequencyFinal, "data/rds/supermarketFrequency.rds")
+write_rds(schools_frequencyFinal, "data/rds/schoolsFrequency.rds")
+write_rds(mrt_frequencyFinal, "data/rds/mrtFrequency.rds")
+write_rds(hawkers_frequencyFinal, "data/rds/hawkerFrequency.rds")
+write_rds(malls_frequencyFinal, "data/rds/mallstFrequency.rds")
+write_rds(combined_frequencyFinal, "data/rds/combinedFrequency.rds")
+```
+
 From here, we can choose either quantile or equal. This could be a descriptiive map for our final project to show the distrubution of ameneties for different subzones.
 
 # 4. Global measures of Spatial autocorrelation
@@ -346,19 +366,26 @@ From here, we can choose either quantile or equal. This could be a descriptiive 
 ```{r}
 wm_q<-combined_frequencyFinal %>% mutate(nb=st_contiguity(geometry), wt=st_weights(nb,style="W"),.before=1)
 wm_q2<-supermarkets_frequencyFinal %>% mutate(nb=st_contiguity(geometry), wt=st_weights(nb,style="W"),.before=1)
+
+wm_q3<-mrt_frequencyFinal %>% mutate(nb=st_contiguity(geometry), wt=st_weights(nb,style="W", allow_zero = TRUE),.before=1)
+
+wm_q4<-hawkers_frequencyFinal %>% mutate(nb=st_contiguity(geometry), wt=st_weights(nb,style="W",allow_zero = TRUE),.before=1)
+wm_q5<-malls_frequencyFinal %>% mutate(nb=st_contiguity(geometry), wt=st_weights(nb,style="W",allow_zero = TRUE),.before=1)
+
+#wm_q6<-combined_frequencyFinal %>% mutate(nb=st_contiguity(geometry), wt=st_weights(nb,style="W"),.before=1)
 ```
 
 ## 4.1 Morans test
 
 ```{r}
 set.seed(1234)
-bperm = global_moran_perm(wm_q$frequency,
+bperm = global_moran_perm(wm_q$frequency, ##com
                   wm_q$nb, 
                   wm_q$wt,
                   nsim=99)
 
 set.seed(1234)
-bperm2 = global_moran_perm(wm_q2$frequency,
+bperm2 = global_moran_perm(wm_q2$frequency, ##super
                   wm_q2$nb, 
                   wm_q2$wt,
                   nsim=99)
@@ -423,12 +450,34 @@ localMoran2 = local_moran(wm_q2$frequency,
                   wm_q2$wt,
                   nsim=99)
 
+localMoran3 = local_moran(wm_q3$frequency, ##mrt
+                  wm_q3$nb, 
+                  wm_q3$wt,
+                  zero.policy = TRUE,
+                  nsim=99)
+
+
+localMoran4 = local_moran(wm_q4$frequency, ##hawker
+                  wm_q4$nb, 
+                  wm_q4$wt,
+                  zero.policy = TRUE,
+                  nsim=99)
+
+localMoran5 = local_moran(wm_q5$frequency, ##mall
+                  wm_q5$nb, 
+                  wm_q5$wt,
+                  zero.policy = TRUE,
+                  nsim=99)
+
 
 ```
 
 ```{r}
 localMoranData <- cbind(combined_frequencyFinal, localMoran)
 localMoranData2 <- cbind(supermarkets_frequencyFinal, localMoran2)
+localMoranData3 <- cbind(mrt_frequencyFinal, localMoran3)
+localMoranData4 <- cbind(hawkers_frequencyFinal, localMoran4)
+localMoranData5 <- cbind(malls_frequencyFinal, localMoran5)
 ```
 
 ```{r}
@@ -473,6 +522,14 @@ pvalue.map2 <- tm_shape(localMoranData2) +
 tmap_arrange(localMI.map2, pvalue.map2, asp=1, ncol=2)
 ```
 
+```{r}
+write_rds(localMoranData, "data/rds/localMoran.rds")
+write_rds(localMoranData2, "data/rds/localMoran2.rds")
+write_rds(localMoranData3, "data/rds/localMoran3.rds")
+write_rds(localMoranData4, "data/rds/localMoran4.rds")
+write_rds(localMoranData5, "data/rds/localMoran5.rds")
+```
+
 Looking at the map generated above, we can see the statistic figures of local moran and also the p-values. What we can infer from above is that local moran statistics that indicate -4 to -1 means that there is negative spatial correlation and that those 1 to 4 indicate stronger spatial correlation. However, when referencing to the P values map, we can see that majority of the areas are light blue, indicating a p value of 0.1 or more. This means that spatial correlation in those areas are likely by random chance.
 
 # Hot Spot and Cold Spot Area Analysis
@@ -492,6 +549,22 @@ getis_nb2 <- supermarkets_frequencyFinal |>
          wt = st_weights(nb)
     ) 
 
+getis_nb3 <- mrt_frequencyFinal |> 
+  mutate(
+    nb = include_self(st_contiguity(geometry)),
+         wt = st_weights(nb)
+    ) 
+getis_nb4 <- hawkers_frequencyFinal |> 
+  mutate(
+    nb = include_self(st_contiguity(geometry)),
+         wt = st_weights(nb)
+    ) 
+
+getis_nb5 <- malls_frequencyFinal |> 
+  mutate(
+    nb = include_self(st_contiguity(geometry)),
+         wt = st_weights(nb)
+    ) 
 
 ```
 
@@ -507,6 +580,18 @@ gistar2 <- getis_nb2 |>
   tidyr::unnest(gi_star2)
 
 gistar2
+
+gistar3 <- getis_nb3 |> 
+  transmute(gi_star3 = local_gstar_perm(frequency, nb, wt, nsim = 199)) |> 
+  tidyr::unnest(gi_star3)
+
+gistar4 <- getis_nb4 |> 
+  transmute(gi_star4 = local_gstar_perm(frequency, nb, wt, nsim = 199)) |> 
+  tidyr::unnest(gi_star4)
+
+gistar5 <- getis_nb5 |> 
+  transmute(gi_star5 = local_gstar_perm(frequency, nb, wt, nsim = 199)) |> 
+  tidyr::unnest(gi_star5)
 ```
 
 ```{r}
@@ -557,6 +642,27 @@ gistar2 <- gistar2 %>%
     p_folded_sim <= 0.05 & gi_star < 0 ~ "Low",
     p_folded_sim <= 0.05 & gi_star > 0 ~ "High"
   ))
+
+gistar3 <- gistar3 %>%
+  mutate(cluster = case_when(
+    p_folded_sim > 0.05 ~ "Not Significant",
+    p_folded_sim <= 0.05 & gi_star < 0 ~ "Low",
+    p_folded_sim <= 0.05 & gi_star > 0 ~ "High"
+  ))
+gistar4 <- gistar4 %>%
+  mutate(cluster = case_when(
+    p_folded_sim > 0.05 ~ "Not Significant",
+    p_folded_sim <= 0.05 & gi_star < 0 ~ "Low",
+    p_folded_sim <= 0.05 & gi_star > 0 ~ "High"
+  ))
+
+gistar5 <- gistar5 %>%
+  mutate(cluster = case_when(
+    p_folded_sim > 0.05 ~ "Not Significant",
+    p_folded_sim <= 0.05 & gi_star < 0 ~ "Low",
+    p_folded_sim <= 0.05 & gi_star > 0 ~ "High"
+  ))
+
 ```
 
 ```{r}
@@ -576,19 +682,89 @@ tmap_mode('plot')
 ```
 
 ```{r}
-temp<-st_join(mainMap_sf, gistar2, join = st_intersects)
-temp[is.na(temp)] <- "Not Significant"
+temp2 <- st_join(mainMap_sf, gistar, join = st_equals)
+temp2[is.na(temp2)] <- "Not Significant"
 
 
 tmap_mode('view')
 
-tm_shape(temp) +
+tm_shape(temp2) +
   tm_fill(col = "cluster",id = "SUBZONE_N") +
   tm_borders()
 
 
 
 tmap_mode('plot')
+```
+
+```{r}
+temp3<-st_join(mainMap_sf, gistar2, join = st_intersects)
+temp3[is.na(temp3)] <- "Not Significant"
+
+
+tmap_mode('view')
+
+tm_shape(temp3) +
+  tm_fill(col = "cluster",id = "SUBZONE_N") +
+  tm_borders()
+
+
+
+tmap_mode('plot')
+```
+
+```{r}
+temp4 <- st_join(mainMap_sf, gistar2, join = st_equals)
+temp4[is.na(temp4)] <- "Not Significant"
+
+
+tmap_mode('view')
+
+tm_shape(temp4) +
+  tm_fill(col = "cluster",id = "SUBZONE_N") +
+  tm_borders()
+
+
+
+tmap_mode('plot')
+```
+```{r}
+###mrt
+temp5<-st_join(mainMap_sf, gistar3, join = st_intersects)
+temp5[is.na(temp5)] <- "Not Significant"
+
+temp6 <- st_join(mainMap_sf, gistar3, join = st_equals)
+temp6[is.na(temp6)] <- "Not Significant"
+
+## hawker
+temp7<-st_join(mainMap_sf, gistar4, join = st_intersects)
+temp7[is.na(temp7)] <- "Not Significant"
+
+temp8 <- st_join(mainMap_sf, gistar4, join = st_equals)
+temp8[is.na(temp8)] <- "Not Significant"
+
+
+##mall
+temp9<-st_join(mainMap_sf, gistar5, join = st_intersects)
+temp9[is.na(temp9)] <- "Not Significant"
+
+temp10 <- st_join(mainMap_sf, gistar5, join = st_equals)
+temp10[is.na(temp10)] <- "Not Significant"
+
+```
+
+```{r}
+write_rds(temp, "data/rds/hotspot.rds")
+write_rds(temp2, "data/rds/hotspot2.rds")
+write_rds(temp3, "data/rds/hotspot3.rds")
+write_rds(temp4, "data/rds/hotspot4.rds")
+
+write_rds(temp5, "data/rds/hotspot5.rds")
+write_rds(temp6, "data/rds/hotspot6.rds")
+write_rds(temp7, "data/rds/hotspot7.rds")
+write_rds(temp8, "data/rds/hotspot8.rds")
+write_rds(temp9, "data/rds/hotspot9.rds")
+write_rds(temp10, "data/rds/hotspot10.rds")
 ```
 
 Summary: Looking at the Global correlation results, we can see that we have no spatial correlation in our dataset. However, when looking at local spatial correlation results, we can see that there are some signs of clustering in the east side of Singapore.
